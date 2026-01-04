@@ -29,6 +29,7 @@ dependencies {
     // DB / Hibernate
     testImplementation(libs.p6spy)
     testImplementation(libs.hibernate.core)
+    testRuntimeOnly(libs.mysql)
 
     // Allure
     testImplementation(libs.allure.attachments)

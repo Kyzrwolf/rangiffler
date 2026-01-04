@@ -9,6 +9,8 @@ public record UserJson(
     UUID id,
     @JsonProperty("username")
     String username,
+    @JsonProperty("password")
+    String password,
     @JsonProperty("firstname")
     String firstname,
     @JsonProperty("surname")
