@@ -45,11 +45,13 @@ dependencies {
     testImplementation(libs.selenide)
 
     // Utils
-    testImplementation(libs.javafaker) {
-        exclude(group = "org.yaml")
-    }
+    testImplementation(libs.datafaker)
     testImplementation(libs.commons.io)
     testImplementation(libs.jsr305)
     testImplementation(libs.sql.formatter)
     compileOnly(libs.jakarta.annotation)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
