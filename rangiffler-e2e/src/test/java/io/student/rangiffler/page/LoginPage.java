@@ -8,7 +8,6 @@ import static com.codeborne.selenide.Selenide.$;
 public class LoginPage {
 
     public SelenideElement loginBtn = $(byText("Login"));
-    public SelenideElement registerBtn = $(byText("Register"));
 
     public AuthPage clickLoginBtn() {
         loginBtn.click();
