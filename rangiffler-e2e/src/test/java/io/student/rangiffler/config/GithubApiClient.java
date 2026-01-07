@@ -1,0 +1,34 @@
+package io.student.rangiffler.config;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.SneakyThrows;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+
+import java.util.Objects;
+
+public class GithubApiClient {
+
+    private static final String GH_TOKEN_ENV = "GITHUB_TOKEN";
+
+    private final Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl(Config.getInstance().githubUrl())
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    private final GithubApi githubApi = retrofit.create(GithubApi.class);
+
+    @SneakyThrows
+    public String issueState(String issueNumber) {
+        String token = System.getenv(GH_TOKEN_ENV);
+        if (token == null || token.isBlank()) {
+            throw new RuntimeException("Environment variable 'GITHUB_TOKEN' is not set");
+        }
+        Response<JsonNode> response = githubApi.issue("Bearer " + System.getenv(GH_TOKEN_ENV), issueNumber).execute();
+        if (response.isSuccessful() && response.body() != null) {
+            return response.body().get("state").asText();
+        }
+        throw new RuntimeException("Failed to fetch issue state from GitHub. Status code: " + response.code());
+    }
+}

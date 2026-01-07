@@ -51,6 +51,10 @@ dependencies {
     testImplementation(libs.jsr305)
     testImplementation(libs.sql.formatter)
     compileOnly(libs.jakarta.annotation)
+
+    // lombok
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
 
 tasks.withType<Test>().configureEach {

@@ -1,5 +1,6 @@
-package io.student.rangiffler.jupiter;
+package io.student.rangiffler.jupiter.annotation;
 
+import io.student.rangiffler.jupiter.extension.UserExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.ElementType;

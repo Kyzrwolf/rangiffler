@@ -1,5 +1,6 @@
-package io.student.rangiffler.jupiter;
+package io.student.rangiffler.jupiter.extension;
 
+import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.models.UserJson;
 import io.student.rangiffler.service.UserDbClient;
 import io.student.rangiffler.service.UsersClient;

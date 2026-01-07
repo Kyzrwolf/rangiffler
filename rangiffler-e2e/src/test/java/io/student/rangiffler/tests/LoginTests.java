@@ -2,7 +2,8 @@ package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
 import io.student.rangiffler.config.Config;
-import io.student.rangiffler.jupiter.User;
+import io.student.rangiffler.jupiter.annotation.DisabledByIssue;
+import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.models.UserJson;
 import io.student.rangiffler.page.LoginPage;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ public class LoginTests extends BaseTest {
 
     @Test
     @User
+    @DisabledByIssue("2")
     @DisplayName("Успешная авторизация")
     void mainPageShouldBeDisplayedAfterSuccessfulLogin(UserJson user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)

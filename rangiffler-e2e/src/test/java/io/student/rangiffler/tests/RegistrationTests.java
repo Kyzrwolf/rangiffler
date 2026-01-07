@@ -2,7 +2,7 @@ package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
 import io.student.rangiffler.config.Config;
-import io.student.rangiffler.jupiter.User;
+import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.models.UserJson;
 import io.student.rangiffler.page.RegisterPage;
 import net.datafaker.Faker;

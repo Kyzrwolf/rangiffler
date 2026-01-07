@@ -17,4 +17,6 @@ public interface Config {
   String dbUsername();
 
   String dbPassword();
+
+  String githubUrl();
 }

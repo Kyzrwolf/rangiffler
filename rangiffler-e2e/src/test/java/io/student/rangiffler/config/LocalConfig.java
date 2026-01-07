@@ -29,4 +29,9 @@ public enum LocalConfig implements Config {
     return "secret";
   }
 
+  @Override
+  public String githubUrl() {
+    return "https://api.github.com/";
+  }
+
 }
