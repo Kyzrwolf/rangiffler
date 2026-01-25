@@ -51,6 +51,7 @@ dependencies {
     testImplementation(libs.jsr305)
     testImplementation(libs.sql.formatter)
     compileOnly(libs.jakarta.annotation)
+    testImplementation("org.apache.commons:commons-lang3:3.14.0")
 
     // lombok
     testCompileOnly(libs.lombok)

@@ -12,11 +12,11 @@ public class AuthPage {
     private final SelenideElement signInBtn = $(".form__submit");
     private final SelenideElement badCredentialsError = $(".form__error");
 
-    public MainPage login(String username, String password) {
+    public TravelsMapPage login(String username, String password) {
         usernameInput.setValue(username);
         passwordInput.setValue(password);
         signInBtn.click();
-        return new MainPage();
+        return new TravelsMapPage();
     }
 
     public AuthPage setUsername(String username) {

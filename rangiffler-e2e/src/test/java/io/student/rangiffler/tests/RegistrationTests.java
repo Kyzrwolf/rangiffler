@@ -46,7 +46,7 @@ public class RegistrationTests extends BaseTest {
                 .signIn()
                 .clickLoginBtn()
                 .login(username, password)
-                .checkMainPageIsOpen();
+                .checkTravelPageIsOpen();
     }
 
 
