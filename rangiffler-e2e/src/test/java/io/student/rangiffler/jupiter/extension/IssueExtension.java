@@ -1,6 +1,6 @@
 package io.student.rangiffler.jupiter.extension;
 
-import io.student.rangiffler.config.GithubApiClient;
+import io.student.rangiffler.api.GithubApiClient;
 import io.student.rangiffler.jupiter.annotation.DisabledByIssue;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;

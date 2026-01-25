@@ -1,4 +1,4 @@
-package io.student.rangiffler.config;
+package io.student.rangiffler.api;
 
 import retrofit2.http.GET;
 import retrofit2.Call;

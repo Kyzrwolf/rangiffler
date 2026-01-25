@@ -11,12 +11,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static io.student.rangiffler.jupiter.annotation.UserType.Type.*;
 
+@ExtendWith(UsersQueueExtension.class)
 public class FriendsWebTests extends BaseTest {
 
     private static final Config CFG = Config.getInstance();
 
     @Test
-    @ExtendWith(UsersQueueExtension.class)
     public void friendShouldBePresentInFriendsTable(@UserType(WITH_FRIEND) UsersQueueExtension.StaticUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
@@ -29,7 +29,6 @@ public class FriendsWebTests extends BaseTest {
     }
 
     @Test
-    @ExtendWith(UsersQueueExtension.class)
     @DisabledByIssue("3")
     public void friendsTableShouldBeEmptyForNewUser(@UserType(EMPTY) UsersQueueExtension.StaticUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
@@ -41,7 +40,6 @@ public class FriendsWebTests extends BaseTest {
     }
 
     @Test
-    @ExtendWith(UsersQueueExtension.class)
     public void incomeInvitationBePresentInFriendsTable(@UserType(WITH_INCOME_REQUEST) UsersQueueExtension.StaticUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
@@ -54,7 +52,6 @@ public class FriendsWebTests extends BaseTest {
     }
 
     @Test
-    @ExtendWith(UsersQueueExtension.class)
     public void outcomeInvitationBePresentInAllPeoplesTable(@UserType(WITH_OUTCOME_REQUEST) UsersQueueExtension.StaticUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()

@@ -1,14 +1,13 @@
 package io.student.rangiffler.jupiter.extension;
 
-import io.qameta.allure.Allure;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -34,43 +33,63 @@ public class UsersQueueExtension implements BeforeEachCallback, AfterEachCallbac
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        final var user = new Optional[]{Optional.empty()};
+
+        ExtensionContext.Store store = context.getStore(NAMESPACE);
+        Map<UserType.Type, StaticUser> users =
+                (Map<UserType.Type, StaticUser>) store.getOrComputeIfAbsent(
+                        context.getUniqueId(),
+                        key -> new HashMap<UserType.Type, StaticUser>()
+                );
 
         Arrays.stream(context.getRequiredTestMethod().getParameters())
-                .filter(parameter -> AnnotationSupport.isAnnotated(parameter, UserType.class))
-                .findFirst()
-                .map(parameter -> parameter.getAnnotation(UserType.class))
-                .ifPresent(
-                        userType -> {
-                            StopWatch sw = StopWatch.createStarted();
-                            while (user[0].isEmpty() && sw.getTime(TimeUnit.SECONDS) < 30) {
-                                switch (userType.value()) {
-                                    case EMPTY -> user[0] = Optional.ofNullable(EMPTY_USERS.poll());
-                                    case WITH_FRIEND -> user[0] = Optional.ofNullable(WITH_FRIENDS.poll());
-                                    case WITH_INCOME_REQUEST ->
-                                            user[0] = Optional.ofNullable(WITH_INCOME_REQUESTS.poll());
-                                    case WITH_OUTCOME_REQUEST ->
-                                            user[0] = Optional.ofNullable(WITH_OUTCOME_REQUESTS.poll());
-                                    default -> user[0] = Optional.empty();
-                                }
-                            }
-                            Allure.getLifecycle().updateTestCase(testCase -> testCase.setStart(new Date().getTime()));
-                            user[0].ifPresentOrElse(u -> context.getStore(NAMESPACE)
-                                            .put(context.getUniqueId(), u),
-                                    () -> new IllegalStateException("no users found after 30 seconds"));
-                        });
+                .filter(p -> AnnotationSupport.isAnnotated(p, UserType.class))
+                .forEach(parameter -> {
+                    UserType ut = parameter.getAnnotation(UserType.class);
+                    if (users.containsKey(ut.value())) {
+                        throw new ExtensionConfigurationException(
+                                "Duplicate @UserType(" + ut.value() + ") in test method: "
+                                        + context.getDisplayName()
+                        );
+                    }
+                    StaticUser user = pollUser(ut.value());
+                    users.put(ut.value(), user);
+                });
+    }
+
+    private StaticUser pollUser(UserType.Type type) {
+        StopWatch sw = StopWatch.createStarted();
+        StaticUser user = null;
+
+        while (user == null && sw.getTime(TimeUnit.SECONDS) < 30) {
+            user = switch (type) {
+                case EMPTY -> EMPTY_USERS.poll();
+                case WITH_FRIEND -> WITH_FRIENDS.poll();
+                case WITH_INCOME_REQUEST -> WITH_INCOME_REQUESTS.poll();
+                case WITH_OUTCOME_REQUEST -> WITH_OUTCOME_REQUESTS.poll();
+            };
+        }
+
+        if (user == null) {
+            throw new IllegalStateException("no users found after 30 seconds");
+        }
+        return user;
     }
 
 
     @Override
     public void afterEach(ExtensionContext context) {
-        var staticUser = context.getStore(NAMESPACE).get(context.getUniqueId(), StaticUser.class);
-        switch (staticUser.type()) {
-            case EMPTY -> EMPTY_USERS.add(staticUser);
-            case WITH_FRIEND -> WITH_FRIENDS.add(staticUser);
-            case WITH_INCOME_REQUEST -> WITH_INCOME_REQUESTS.add(staticUser);
-            case WITH_OUTCOME_REQUEST -> WITH_OUTCOME_REQUESTS.add(staticUser);
-        }
+        Map<UserType.Type, StaticUser> users =
+                context.getStore(NAMESPACE)
+                        .remove(context.getUniqueId(), Map.class);
+
+        users.values().forEach(user -> {
+            switch (user.type()) {
+                case EMPTY -> EMPTY_USERS.add(user);
+                case WITH_FRIEND -> WITH_FRIENDS.add(user);
+                case WITH_INCOME_REQUEST -> WITH_INCOME_REQUESTS.add(user);
+                case WITH_OUTCOME_REQUEST -> WITH_OUTCOME_REQUESTS.add(user);
+            }
+        });
     }
 
     @Override
@@ -80,7 +99,11 @@ public class UsersQueueExtension implements BeforeEachCallback, AfterEachCallbac
     }
 
     @Override
-    public StaticUser resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return extensionContext.getStore(NAMESPACE).get(extensionContext.getUniqueId(), StaticUser.class);
+    public StaticUser resolveParameter(ParameterContext pc, ExtensionContext context) {
+        UserType ut = pc.getParameter().getAnnotation(UserType.class);
+        Map<UserType.Type, StaticUser> users = context.getStore(NAMESPACE)
+                .get(context.getUniqueId(), Map.class);
+
+        return users.get(ut.value());
     }
 }
