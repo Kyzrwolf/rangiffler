@@ -18,6 +18,8 @@ allprojects {
     }
 }
 
+
+
 subprojects {
     ext {
         lombokVersion = '1.18.42'
