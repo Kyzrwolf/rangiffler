@@ -7,18 +7,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @Component
-@ParametersAreNonnullByDefault
 public class CorsCustomizer {
 
-  private final String nifflerFrontUri;
+  private final String rangifflerFronUrl;
 
   @Autowired
-  public CorsCustomizer(@Value("${niffler-front.base-uri}") String nifflerFrontUri) {
-    this.nifflerFrontUri = nifflerFrontUri;
+  public CorsCustomizer(@Value("${rangiffler-front.base-uri}") String rangifflerFrontUrl) {
+    this.rangifflerFronUrl = rangifflerFrontUrl;
   }
 
   public void corsCustomizer(HttpSecurity http) throws Exception {
@@ -26,7 +24,7 @@ public class CorsCustomizer {
       CorsConfigurationSource source = s -> {
         CorsConfiguration cc = new CorsConfiguration();
         cc.setAllowCredentials(true);
-        cc.setAllowedOrigins(List.of(nifflerFrontUri));
+        cc.setAllowedOrigins(List.of(rangifflerFronUrl));
         cc.setAllowedHeaders(List.of("*"));
         cc.setAllowedMethods(List.of("*"));
         return cc;

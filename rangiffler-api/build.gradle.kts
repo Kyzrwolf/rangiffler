@@ -34,7 +34,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-graphql")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("com.tailrocks.graphql:graphql-java-datetime:6.0.0")
+    implementation("com.tailrocks.graphql:graphql-datetime-spring-boot-starter:6.0.0")
     implementation ("org.flywaydb:flyway-core:$flywayVersion")
     implementation ("org.flywaydb:flyway-mysql:$flywayVersion")
     compileOnly("org.projectlombok:lombok")
@@ -45,11 +45,11 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j:9.5.0")
 }
 
-tasks.generateJava {
-    schemaPaths.add("${projectDir}/src/main/resources/graphql")
-    packageName = "io.student.model"
-    generateClient = false
-}
+//tasks.generateJava {
+//    schemaPaths.add("${projectDir}/src/main/resources/graphql")
+//    packageName = "io.student.model"
+//    generateClient = false
+//}
 
 tasks.withType<Test> {
     useJUnitPlatform()

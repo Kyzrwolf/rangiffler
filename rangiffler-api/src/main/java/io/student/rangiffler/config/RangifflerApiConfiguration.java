@@ -16,39 +16,38 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.text.SimpleDateFormat;
 
-import static org.apache.tomcat.util.http.Method.POST;
-
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
 @Profile({"local", "docker", "staging"})
 public class RangifflerApiConfiguration {
 
-  private final CorsCustomizer corsCustomizer;
+    private final CorsCustomizer corsCustomizer;
 
-  @Autowired
-  public RangifflerApiConfiguration(CorsCustomizer corsCustomizer) {
-    this.corsCustomizer = corsCustomizer;
-  }
+    @Autowired
+    public RangifflerApiConfiguration(CorsCustomizer corsCustomizer) {
+        this.corsCustomizer = corsCustomizer;
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    corsCustomizer.corsCustomizer(http);
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        corsCustomizer.corsCustomizer(http);
 
-    http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(customizer ->
-            customizer
-                .requestMatchers(HttpMethod.POST, "/graphql").permitAll()
-                .anyRequest().authenticated())
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-    return http.build();
-  }
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(customizer ->
+                        customizer
+                                .requestMatchers(HttpMethod.POST, "/graphql").permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        return http.build();
+    }
 
-  @Bean
-  public ObjectMapper objectMapper() {
-    var objectMapper = new ObjectMapper();
-    var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ssZ");
-    objectMapper.setDateFormat(dateFormat);
-    return objectMapper;
-  }
+    @Bean
+    public ObjectMapper objectMapper() {
+        var objectMapper = new ObjectMapper();
+        var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ssZ");
+        objectMapper.setDateFormat(dateFormat);
+        return objectMapper;
+    }
 }
