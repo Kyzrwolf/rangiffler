@@ -19,11 +19,10 @@ public class CountryService {
     public List<Country> findAll() {
         return countryRepository.findAll()
                 .stream()
-                .map(entity -> Country.newBuilder()
-                        .code(entity.getCode())
-                        .name(entity.getName())
-                        .flag(toDataUriPng(entity.getFlag()))
-                        .build())
+                .map(entity -> new Country()
+                        .setCode(entity.getCode())
+                        .setName(entity.getName())
+                        .setFlag(toDataUriPng(entity.getFlag())))
                 .toList();
     }
 
@@ -33,11 +32,10 @@ public class CountryService {
             throw new IllegalArgumentException("Не найдена страна по коду: " + code);
         }
 
-        return Country.newBuilder()
-                .code(entity.getCode())
-                .name(entity.getName())
-                .flag(toDataUriPng(entity.getFlag()))
-                .build();
+        return new Country()
+                .setCode(entity.getCode())
+                .setName(entity.getName())
+                .setFlag(toDataUriPng(entity.getFlag()));
     }
 
     private static String toDataUriPng(byte[] bytes) {

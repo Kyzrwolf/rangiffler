@@ -5,7 +5,6 @@ import io.student.rangiffler.service.cors.CorsCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,7 +18,6 @@ import java.text.SimpleDateFormat;
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
-@Profile({"local", "docker", "staging"})
 public class RangifflerApiConfiguration {
 
     private final CorsCustomizer corsCustomizer;

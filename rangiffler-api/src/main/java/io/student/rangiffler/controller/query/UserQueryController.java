@@ -1,6 +1,7 @@
 package io.student.rangiffler.controller.query;
 
 import io.student.rangiffler.model.User;
+import io.student.rangiffler.service.UserService;
 import io.student.rangiffler.utils.GqlQueryPaginationAndSort;
 import org.springframework.data.domain.*;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -13,11 +14,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
-import java.util.UUID;
 
 @Controller
 @PreAuthorize("isAuthenticated()")
 public class UserQueryController {
+
+    private final UserService userService;
+
+    public UserQueryController(UserService userService) {
+        this.userService = userService;
+    }
 
     @SchemaMapping(typeName = "User", field = "friends")
     public Page<User> friends(@Argument int page,
@@ -60,10 +66,8 @@ public class UserQueryController {
 
     @QueryMapping
     public User user(@AuthenticationPrincipal Jwt principal) {
-        return User.newBuilder()
-                .id(UUID.randomUUID().toString())
-                .username(principal.getClaimAsString("sub"))
-                .build();
+        String username = principal.getClaimAsString("sub");
+        return userService.getUserByUsername(username);
     }
 
     @QueryMapping
