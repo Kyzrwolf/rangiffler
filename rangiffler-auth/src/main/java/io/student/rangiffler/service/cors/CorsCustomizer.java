@@ -18,17 +18,14 @@ import java.util.Set;
 public class CorsCustomizer {
 
   private final String frontUri;
-  private final String authUri;
 
   @Autowired
-  public CorsCustomizer(@Value("${rangiffler-front.base-uri}") String frontUri,
-                        @Value("${rangiffler-auth.base-uri}") String authUri) {
+  public CorsCustomizer(@Value("${rangiffler-front.base-uri}") String frontUri) {
     this.frontUri = frontUri;
-    this.authUri = authUri;
   }
 
   public Set<String> allowedOrigins() {
-    return Set.of(frontUri, authUri);
+    return Set.of(frontUri);
   }
 
   public void corsCustomizer(@Nonnull HttpSecurity http) throws Exception {

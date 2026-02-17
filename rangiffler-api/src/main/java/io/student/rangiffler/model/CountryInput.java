@@ -1,0 +1,13 @@
+package io.student.rangiffler.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CountryInput {
+  private String code;
+
+}
