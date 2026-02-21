@@ -1,29 +1,20 @@
-package io.student.rangiffler.service;
+package io.student.rangiffler.service.impl;
 
 import io.student.rangiffler.model.Country;
-import io.student.rangiffler.repository.CountryRepository;
+import io.student.rangiffler.data.repository.CountryRepository;
+import io.student.rangiffler.service.api.CountryService;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.List;
 
 @Service
-public class CountryService {
+public class CountryServiceImpl implements CountryService {
 
     private final CountryRepository countryRepository;
 
-    public CountryService(CountryRepository countryRepository) {
+    public CountryServiceImpl(CountryRepository countryRepository) {
         this.countryRepository = countryRepository;
-    }
-
-    public List<Country> findAll() {
-        return countryRepository.findAll()
-                .stream()
-                .map(entity -> new Country()
-                        .setCode(entity.getCode())
-                        .setName(entity.getName())
-                        .setFlag(toDataUriPng(entity.getFlag())))
-                .toList();
     }
 
     public Country byCode(String code) {
@@ -43,5 +34,16 @@ public class CountryService {
             return "";
         }
         return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
+    }
+
+    @Override
+    public List<Country> getAllCountries() {
+        return countryRepository.findAll()
+                .stream()
+                .map(entity -> new Country()
+                        .setCode(entity.getCode())
+                        .setName(entity.getName())
+                        .setFlag(toDataUriPng(entity.getFlag())))
+                .toList();
     }
 }

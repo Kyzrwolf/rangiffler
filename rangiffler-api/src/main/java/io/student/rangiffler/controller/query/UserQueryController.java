@@ -1,8 +1,9 @@
 package io.student.rangiffler.controller.query;
 
 import io.student.rangiffler.model.User;
-import io.student.rangiffler.service.UserService;
+import io.student.rangiffler.service.impl.UserServiceImpl;
 import io.student.rangiffler.utils.GqlQueryPaginationAndSort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -19,9 +20,10 @@ import java.util.List;
 @PreAuthorize("isAuthenticated()")
 public class UserQueryController {
 
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
-    public UserQueryController(UserService userService) {
+    @Autowired
+    public UserQueryController(UserServiceImpl userService) {
         this.userService = userService;
     }
 

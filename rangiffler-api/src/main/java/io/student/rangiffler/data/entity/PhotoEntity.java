@@ -1,4 +1,4 @@
-package io.student.rangiffler.data;
+package io.student.rangiffler.data.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

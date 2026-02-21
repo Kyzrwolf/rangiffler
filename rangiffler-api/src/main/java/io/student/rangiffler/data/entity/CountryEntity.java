@@ -1,4 +1,4 @@
-package io.student.rangiffler.data;
+package io.student.rangiffler.data.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -6,14 +6,15 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "country")
+
 @Getter
 @Setter
+@Entity
+@Table(name = "country")
 public class CountryEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
@@ -26,3 +27,4 @@ public class CountryEntity {
     @Column(name = "flag", columnDefinition = "LONGBLOB")
     private byte[] flag;
 }
+

@@ -1,13 +1,13 @@
 package io.student.rangiffler.service;
 
-import io.student.rangiffler.data.PhotoEntity;
+import io.student.rangiffler.data.entity.PhotoEntity;
 import io.student.rangiffler.model.Country;
 import io.student.rangiffler.model.Likes;
 import io.student.rangiffler.model.Photo;
 import io.student.rangiffler.model.PhotoInput;
-import io.student.rangiffler.repository.CountryRepository;
-import io.student.rangiffler.repository.PhotoRepository;
-import io.student.rangiffler.repository.UserRepository;
+import io.student.rangiffler.data.repository.CountryRepository;
+import io.student.rangiffler.data.repository.PhotoRepository;
+import io.student.rangiffler.data.repository.UserRepository;
 import io.student.rangiffler.utils.Utils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
