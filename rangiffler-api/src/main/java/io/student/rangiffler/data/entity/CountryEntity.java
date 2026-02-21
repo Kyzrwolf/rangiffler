@@ -25,6 +25,7 @@ public class CountryEntity {
     private String name;
 
     @Column(name = "flag", columnDefinition = "LONGBLOB")
+    @Basic(fetch = FetchType.LAZY)
     private byte[] flag;
 }
 

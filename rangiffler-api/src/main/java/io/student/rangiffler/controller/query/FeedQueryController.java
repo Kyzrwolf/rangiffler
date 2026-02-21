@@ -1,5 +1,10 @@
 package io.student.rangiffler.controller.query;
 
+import io.student.rangiffler.data.entity.PhotoEntity;
+import io.student.rangiffler.data.repository.CountryRepository;
+import io.student.rangiffler.data.repository.PhotoRepository;
+import io.student.rangiffler.data.repository.UserRepository;
+import io.student.rangiffler.exception.ResourceNotFoundException;
 import io.student.rangiffler.model.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -12,11 +17,25 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 public class FeedQueryController {
+
+    private final PhotoRepository photoRepository;
+    private final UserRepository userRepository;
+    private final CountryRepository countryRepository;
+
+    public FeedQueryController(PhotoRepository photoRepository,
+                               UserRepository userRepository,
+                               CountryRepository countryRepository) {
+        this.photoRepository = photoRepository;
+        this.userRepository = userRepository;
+        this.countryRepository = countryRepository;
+    }
 
     @SchemaMapping(typeName = "Feed", field = "stat")
     public List<Stat> stat(Feed feed) {
@@ -43,7 +62,7 @@ public class FeedQueryController {
                 .setCreationDate(LocalDate.now());
 
         return new Likes()
-                .setTotal(33)
+                .setTotal(1500344343)
                 .setLikes(List.of(like));
     }
 
@@ -51,38 +70,60 @@ public class FeedQueryController {
     public Slice<Photo> photos(User user,
                                @Argument int page,
                                @Argument int size) {
-        var photo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAeCAMAAABpA6zvAAAA+VBMVEVHcEyVFQ7S0tKXFg/R0dGYGBCcGRLU1NTW1takHhSeGxLW1tamHxWbFxfKysqhGxPU1NTR0dHT09PU1NTV1dXT09OSFA3///8AMp7MIRbPIxjKHhQAOacANaLRJRkAN6XTJxsAMJzWKx0APKjHHBMAQKsARa7X2NoAPqoCQqzWLiAALpnUKRyfGBCUFA4ISa61IBbm5ubMzMyuJBve3t4CKYgBI3YALJbDKR6uGBBJcbxUL2j5+ftskc7g4+luLFfr6+u+IBYAQqHt7vCpHhVDNnymudyMqdkoOI2JJkOnLTgAOZAAPpQsWrQAPZ1FIVa6yuf09PRBW5RdfvtPAAAAF3RSTlMAueiE0Cal/7jPTITtBwhlH2agL0JV2eqn9WIAAAGcSURBVDjLxdRbV4JAFIbhyfOx0jIlCNM0pBCPlYlCJB7LrP7/j2nvaSYH5aKuei9Zz3yzFhdDCHRcSOcTWD6dOz0m+x0WEoScpEMa1Me0OBZJoD/k6CSXD3W7JKFp9uSjyBt9TDrMhyIYmG683+8SrTMq7ofeppfYnQmADsCn4i/6R2j/YTEOcKTN5mNsPnu3g35CcfZJ4tp82GpdQ7qu1+v1hr4ejuein8zGrbt7Aoo7ZI3GFaYoV631EFvrpVKpAvD1eeu2TFHKSrl8gaFjcGeOsrLIKrcU+uc48zkO/c7Hvh3Cl2fm9pjgHhC+/bhARh2D4BbTqWVZ0+niQmB8DrrfAFw4qxtatWoYxmC1dKxFxTe3WXomsVYMVdFd0lRVRe/AJY6z7MlS7dEkvQF3BnMqdo5JkCzJEIfCnOp3EnV8cTsnMNExuDMnMokyBn9cIKOOQUMduG2W60oBrtYE2HZ7nudlklimiXkeHKjJMnPuY9M0D0jPy8SOoln2fmSjqaNwLNkUMk3zLBwlJJnKBrxK1McOoFg4FcUvX2nLmUOxnjYdAAAAAElFTkSuQmCC";
-        var mockPhoto = new Photo()
-                .setId(UUID.randomUUID())
-                .setSrc(photo)
-                .setCountry(new Country()
-                        .setCode("ru")
-                        .setName("Russian Federation")
-                        .setFlag(photo))
-                .setDescription("Mock photo")
-                .setCreationDate(LocalDate.now())
-                .setOwner(true);
+       var pageable = PageRequest.of(page, size);
+       var photoEntities = photoRepository.findByUserIdOrderByCreatedDateDesc(UUID.fromString(user.getId()), pageable);
 
-        return new SliceImpl<>(List.of(mockPhoto), PageRequest.of(page, size), false);
+        List<Photo> photos = photoEntities.stream()
+                .map(entity -> convertToPhoto(entity, user.getId()))
+                .collect(Collectors.toList());
 
+        return new SliceImpl<>(photos, pageable, photoEntities.hasNext());
     }
 
     @SchemaMapping(typeName = "Feed", field = "photos")
     public Slice<Photo> photos(Feed feed,
                                @Argument int page,
                                @Argument int size) {
+        var pageable = PageRequest.of(page, size);
+        var user = userRepository.findByUsername(feed.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Пользователь %s не найден".formatted(feed.getUsername())
+                ));
 
-        return new SliceImpl<>(List.of(), PageRequest.of(page, size), false);
+        var photoEntities = photoRepository.findByUserIdOrderByCreatedDateDesc(
+                user.getId(), pageable);
+
+        var photos = photoEntities.getContent().stream()
+                .map(entity -> convertToPhoto(entity, user.getId().toString()))
+                .toList();
+
+        return new SliceImpl<>(photos, pageable, photoEntities.hasNext());
     }
 
     @QueryMapping
     public Feed feed(@AuthenticationPrincipal Jwt principal,
                      @Argument boolean withFriends) {
-
         var username = principal.getClaimAsString("sub");
         return Feed.newBuilder()
                 .username(username)
                 .withFriends(withFriends)
                 .build();
+    }
+
+    private Photo convertToPhoto(PhotoEntity entity, String userId) {
+        var countryFlag = "data:image/png;base64," +
+                Base64.getEncoder().encodeToString(entity.getCountry().getFlag());
+
+        return new Photo()
+                .setId(entity.getId())
+                .setSrc("data:image/jpeg;base64," + Base64.getEncoder().encodeToString(entity.getPhoto()))
+                .setCountry(new Country()
+                        .setCode(entity.getCountry().getCode())
+                        .setName(entity.getCountry().getName())
+                        .setFlag(countryFlag))
+                .setDescription(entity.getDescription())
+                .setCreationDate(entity.getCreatedDate().toLocalDate())
+                .setOwner(true)
+                .setLikes(new Likes());
     }
 }

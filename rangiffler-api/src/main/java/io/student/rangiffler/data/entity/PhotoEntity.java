@@ -29,7 +29,6 @@ public class PhotoEntity {
     private String description;
 
     @Lob
-    @Basic(fetch = FetchType.LAZY)
     @Column(name = "photo", columnDefinition = "LONGBLOB")
     private byte[] photo;
 

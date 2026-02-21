@@ -1,6 +1,7 @@
 package io.student.rangiffler.service;
 
 import io.student.rangiffler.data.entity.PhotoEntity;
+import io.student.rangiffler.exception.ResourceNotFoundException;
 import io.student.rangiffler.model.Country;
 import io.student.rangiffler.model.Likes;
 import io.student.rangiffler.model.Photo;
@@ -38,11 +39,10 @@ public class PhotoService {
                 .getId();
 
         var countryEntity = countryRepository.findByCode(
-                photoInput.getCountry().getCode());
-
-        if (countryEntity == null) {
-            throw new IllegalArgumentException("Не найдена страна по коду: " + photoInput.getCountry().getCode());
-        }
+                photoInput.getCountry().getCode())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Страна не найдена по коду: %s", photoInput.getCountry().getCode())
+                ));
 
         var entity = new PhotoEntity();
         var decodedPhoto = Utils.decodeDataUriBase64(photoInput.getSrc());
