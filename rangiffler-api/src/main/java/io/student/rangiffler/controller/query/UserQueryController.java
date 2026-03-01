@@ -2,7 +2,6 @@ package io.student.rangiffler.controller.query;
 
 import io.student.rangiffler.model.User;
 import io.student.rangiffler.service.impl.UserServiceImpl;
-import io.student.rangiffler.utils.GqlQueryPaginationAndSort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -28,16 +27,17 @@ public class UserQueryController {
     }
 
     @SchemaMapping(typeName = "User", field = "friends")
-    public Page<User> friends(@Argument int page,
+    public Page<User> friends(User user,
+                              @Argument int page,
                               @Argument int size,
                               @Argument @Nullable List<String> sort,
                               @Argument @Nullable String searchQuery) {
 
-        Pageable pageable = new GqlQueryPaginationAndSort(page, size, sort).pageable();
-        return new PageImpl<>(
-                List.of(new User()),
-                pageable,
-                1);
+        return userService.friends(
+                user.getUsername(),
+                PageRequest.of(page, size),
+                searchQuery
+        );
     }
 
     @SchemaMapping(typeName = "User", field = "incomeInvitations")
@@ -45,31 +45,28 @@ public class UserQueryController {
                                          @Argument int page,
                                          @Argument int size,
                                          @Argument @Nullable String searchQuery) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return new SliceImpl<>(
-                List.of(new User()),
-                pageable,
-                false
+        return userService.incomeInvitations(
+                user.getUsername(),
+                PageRequest.of(page, size),
+                searchQuery
         );
     }
+
     @SchemaMapping(typeName = "User", field = "outcomeInvitations")
     public Slice<User> outcomeInvitations(User user,
                                           @Argument int page,
                                           @Argument int size,
                                           @Argument @Nullable String searchQuery) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return new SliceImpl<>(
-                List.of(new User()),
-                pageable,
-                false);
+        return userService.outcomeInvitations(
+                user.getUsername(),
+                PageRequest.of(page, size),
+                searchQuery
+        );
     }
 
     @QueryMapping
     public User user(@AuthenticationPrincipal Jwt principal) {
-        String username = principal.getClaimAsString("sub");
-        return userService.getUserByUsername(username);
+        return userService.createNewUserIfNotPresent(principal.getClaim("sub"));
     }
 
     @QueryMapping
@@ -77,12 +74,10 @@ public class UserQueryController {
                              @Argument int page,
                              @Argument int size,
                              @Argument @Nullable String searchQuery) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return new SliceImpl<>(
-                List.of(new User()),
-                pageable,
-                false
+        return userService.allUsers(
+                principal.getClaim("sub"),
+                PageRequest.of(page, size),
+                searchQuery
         );
     }
 }

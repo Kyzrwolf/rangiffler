@@ -1,10 +1,12 @@
 package io.student.rangiffler.data.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -27,6 +29,17 @@ public class PhotoEntity {
 
     @Column(name = "description", columnDefinition = "VARCHAR(255)")
     private String description;
+
+    @NotNull
+    @JoinTable(name = "photo_like",
+            joinColumns = {
+                    @JoinColumn(name = "photo_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "like_id")
+            }
+    )
+    private List<LikeEntity> likes;
 
     @Lob
     @Column(name = "photo", columnDefinition = "LONGBLOB")
