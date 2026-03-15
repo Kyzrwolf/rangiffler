@@ -36,7 +36,7 @@ public class UserEntity implements Serializable {
     @Column(name = "avatar", columnDefinition = "LONGBLOB")
     private byte[] avatar;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "country_id", referencedColumnName = "id")
     private CountryEntity country;
 

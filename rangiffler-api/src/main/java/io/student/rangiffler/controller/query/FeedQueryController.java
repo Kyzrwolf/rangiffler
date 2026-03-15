@@ -71,7 +71,7 @@ public class FeedQueryController {
                                @Argument int page,
                                @Argument int size) {
        var pageable = PageRequest.of(page, size);
-       var photoEntities = photoRepository.findByUserIdOrderByCreatedDateDesc(UUID.fromString(user.getId()), pageable);
+       var photoEntities = photoRepository.findByUserIdOrderByCreatedDateDesc(user.getId(), pageable);
 
         List<Photo> photos = photoEntities.stream()
                 .map(entity -> convertToPhoto(entity, user.getId()))
@@ -94,7 +94,7 @@ public class FeedQueryController {
                 user.getId(), pageable);
 
         var photos = photoEntities.getContent().stream()
-                .map(entity -> convertToPhoto(entity, user.getId().toString()))
+                .map(entity -> convertToPhoto(entity, user.getId()))
                 .toList();
 
         return new SliceImpl<>(photos, pageable, photoEntities.hasNext());
@@ -110,7 +110,7 @@ public class FeedQueryController {
                 .build();
     }
 
-    private Photo convertToPhoto(PhotoEntity entity, String userId) {
+    private Photo convertToPhoto(PhotoEntity entity, UUID userId) {
         var countryFlag = "data:image/png;base64," +
                 Base64.getEncoder().encodeToString(entity.getCountry().getFlag());
 

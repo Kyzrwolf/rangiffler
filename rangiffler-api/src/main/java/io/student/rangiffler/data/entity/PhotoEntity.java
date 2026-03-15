@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "photo")
+@Accessors(chain = true)
 public class PhotoEntity {
 
     @Id
@@ -23,7 +26,7 @@ public class PhotoEntity {
     @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "country_id", nullable = false, columnDefinition = "BINARY(16)")
     private CountryEntity country;
 
@@ -31,15 +34,8 @@ public class PhotoEntity {
     private String description;
 
     @NotNull
-    @JoinTable(name = "photo_like",
-            joinColumns = {
-                    @JoinColumn(name = "photo_id")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "like_id")
-            }
-    )
-    private List<LikeEntity> likes;
+    @OneToMany(mappedBy = "photo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PhotoLikeEntity> photoLikes = new ArrayList<>();
 
     @Lob
     @Column(name = "photo", columnDefinition = "LONGBLOB")

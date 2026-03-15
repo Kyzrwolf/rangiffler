@@ -5,20 +5,25 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "`like`")
+@Accessors(chain = true)
 public class LikeEntity {
     @Id
     @Size(max = 16)
     @ColumnDefault("(uuid_to_bin(uuid(), true))")
     @Column(name = "id", nullable = false, length = 16)
-    private String id;
+    private UUID id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -27,7 +32,10 @@ public class LikeEntity {
 
     @NotNull
     @Column(name = "created_date", nullable = false)
-    private Instant createdDate;
+    private LocalDate createdDate;
+
+    @OneToMany(mappedBy = "like", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PhotoLikeEntity> photoLikes = new ArrayList<>();
 
 
 }

@@ -1,6 +1,7 @@
 package io.student.rangiffler.service.impl;
 
 import io.student.rangiffler.data.entity.CountryEntity;
+import io.student.rangiffler.data.entity.FriendshipEntity;
 import io.student.rangiffler.data.entity.FriendshipStatus;
 import io.student.rangiffler.data.entity.UserEntity;
 import io.student.rangiffler.data.projection.UserWithStatus;
@@ -71,38 +72,108 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<User> incomeInvitations(String username, Pageable pageable, String searchQuery) {
-        return null;
+        return (searchQuery != null && !searchQuery.isBlank())
+                ? userRepository.findIncomeInvitations(username, searchQuery, pageable)
+                .map(this::toUserFromProjection)
+                : userRepository.findIncomeInvitations(username, pageable)
+                .map(this::toUserFromProjection);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<User> outcomeInvitations(String username, Pageable pageable, String searchQuery) {
-        return null;
+        return (searchQuery != null && !searchQuery.isBlank())
+                ? userRepository.findOutcomeInvitations(username, searchQuery, pageable)
+                .map(this::toUserFromProjection)
+                : userRepository.findOutcomeInvitations(username, pageable)
+                .map(this::toUserFromProjection);
     }
 
     @Override
+    @Transactional
     public User updateUser(String username, UserInput input) {
-        return null;
+        UserEntity userEntity = getRequiredUser(username);
+
+        if (input.getFirstname() != null) {
+            userEntity.setFirstname(input.getFirstname());
+        }
+        if (input.getSurname() != null) {
+            userEntity.setLastName(input.getSurname());
+        }
+        if (input.getAvatar() != null) {
+            userEntity.setAvatar(Utils.stringAsBytes(input.getAvatar()));
+        }
+        if (input.getLocation() != null) {
+            CountryEntity country = countryRepository.findByCode(input.getLocation().getCode())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            String.format("Страна не найдена по коду: %s", input.getLocation().getCode())));
+            userEntity.setCountry(country);
+        }
+
+        UserEntity saved = userRepository.save(userEntity);
+        return entityToUser(saved, null);
     }
 
     @Override
+    @Transactional
     public User addFriend(String username, UUID friendId) {
-        return null;
+        UserEntity currentUser = getRequiredUser(username);
+        UserEntity friend = getRequiredUser(friendId);
+
+        currentUser.addFriends(FriendshipStatus.PENDING, friend);
+        userRepository.save(currentUser);
+
+        return entityToUser(friend, FriendStatus.INVITATION_SENT);
     }
 
     @Override
+    @Transactional
     public User acceptInvitation(String username, UUID friendId) {
-        return null;
+        UserEntity currentUser = getRequiredUser(username);
+        UserEntity inviteUser = getRequiredUser(friendId);
+
+        FriendshipEntity invite = currentUser.getFriendshipAddressees()
+                .stream()
+                .filter(fe -> fe.getRequester().getUsername().equals(inviteUser.getUsername()))
+                .findFirst()
+                .orElseThrow();
+
+        invite.setStatus(FriendshipStatus.ACCEPTED);
+        currentUser.addFriends(FriendshipStatus.ACCEPTED, inviteUser);
+        userRepository.save(currentUser);
+
+        return entityToUser(inviteUser, FriendStatus.FRIEND);
     }
 
     @Override
+    @Transactional
     public User declineInvitation(String username, UUID friendId) {
-        return null;
+        UserEntity currentUser = getRequiredUser(username);
+        UserEntity friendToDecline = getRequiredUser(friendId);
+
+        currentUser.removeInvites(friendToDecline);
+        friendToDecline.removeFriends(currentUser);
+
+        userRepository.save(currentUser);
+        userRepository.save(friendToDecline);
+        return entityToUser(friendToDecline, null);
     }
 
     @Override
+    @Transactional
     public User removeFriend(String username, UUID friendId) {
-        return null;
+        UserEntity currentUser = getRequiredUser(username);
+        UserEntity friend = getRequiredUser(friendId);
+
+        currentUser.removeFriends(friend);
+        currentUser.removeInvites(friend);
+        friend.removeFriends(currentUser);
+        friend.removeInvites(currentUser);
+        userRepository.save(currentUser);
+        userRepository.save(friend);
+        return entityToUser(friend, null);
     }
 
     @Override
@@ -112,7 +183,7 @@ public class UserServiceImpl implements UserService {
 
     private User entityToUser(UserEntity entity, FriendStatus friendStatus) {
         return new User()
-                .setId(entity.getId().toString())
+                .setId(entity.getId())
                 .setUsername(entity.getUsername())
                 .setFirstname(entity.getFirstname())
                 .setFirstname(entity.getLastName())
@@ -158,7 +229,7 @@ public class UserServiceImpl implements UserService {
         }
 
         return new User()
-                .setId(projection.id().toString())
+                .setId(projection.id())
                 .setUsername(projection.username())
                 .setFirstname(projection.firstname())
                 .setSurname(projection.lastName())

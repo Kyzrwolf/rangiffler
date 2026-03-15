@@ -13,6 +13,10 @@ public class Utils {
         return content == null ? "" : new String(content, UTF_8);
     }
 
+    public byte[] stringAsBytes(String content) {
+        return content == null ? new byte[0] : content.getBytes(UTF_8);
+    }
+
     public byte[] decodeDataUriBase64(String src) {
         if (src == null || src.isBlank()) {
             return null;
