@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,8 +68,13 @@ public class UserServiceImpl implements UserService {
                 .map(this::toUserFromProjection);    }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<User> friends(String username, Pageable pageable, String searchQuery) {
-        return null;
+        return (searchQuery != null && !searchQuery.isBlank())
+                ? userRepository.findFriends(username, searchQuery, pageable)
+                .map(this::toUserFromProjection)
+                : userRepository.findFriends(username, pageable)
+                .map(this::toUserFromProjection);
     }
 
     @Override
@@ -196,7 +202,9 @@ public class UserServiceImpl implements UserService {
         return new Country()
                 .setCode(entity.getCode())
                 .setName(entity.getName())
-                .setFlag(Utils.bytesAsString(entity.getFlag()));
+                .setFlag(entity.getFlag() != null && entity.getFlag().length > 0
+                        ? "data:image/png;base64," + Base64.getEncoder().encodeToString(entity.getFlag())
+                        : "");
     }
 
 

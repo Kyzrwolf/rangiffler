@@ -4,11 +4,11 @@ import io.student.rangiffler.data.entity.CountryEntity;
 import io.student.rangiffler.data.repository.CountryRepository;
 import io.student.rangiffler.model.Country;
 import io.student.rangiffler.service.api.CountryService;
-import io.student.rangiffler.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -33,6 +33,11 @@ public class CountryServiceImpl implements CountryService {
         return new Country()
                 .setCode(entity.getCode())
                 .setName(entity.getName())
-                .setFlag(Utils.bytesAsString(entity.getFlag()));
+                .setFlag(toBase64DataUri(entity.getFlag()));
+    }
+
+    private String toBase64DataUri(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) return "";
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
     }
 }
