@@ -1,109 +1,140 @@
 package io.student.rangiffler.jupiter.extension;
 
 import io.student.rangiffler.jupiter.annotation.UserType;
-import org.apache.commons.lang3.time.StopWatch;
+import io.student.rangiffler.models.UserJson;
+import io.student.rangiffler.service.UserDbClient;
+import io.student.rangiffler.service.UsersClient;
+import lombok.extern.slf4j.Slf4j;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class UsersQueueExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
-    public static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(UsersQueueExtension.class);
+    public static final ExtensionContext.Namespace NAMESPACE =
+            ExtensionContext.Namespace.create(UsersQueueExtension.class);
 
-    public record StaticUser(String username, String password, UserType.Type type) {
+    private static final String USERS_KEY = "static_users_";
+    private static final String CLEANUP_KEY = "cleanup_users_";
+
+    public record StaticUser(
+            String username,
+            String password,
+            UserType.Type type,
+            @Nullable StaticUser friend
+    ) {
     }
 
-    private static Queue<StaticUser> EMPTY_USERS = new ConcurrentLinkedQueue<>();
-    private static Queue<StaticUser> WITH_FRIENDS = new ConcurrentLinkedQueue<>();
-    private static Queue<StaticUser> WITH_INCOME_REQUESTS = new ConcurrentLinkedQueue<>();
-    private static Queue<StaticUser> WITH_OUTCOME_REQUESTS = new ConcurrentLinkedQueue<>();
-
-    static {
-        EMPTY_USERS.add(new StaticUser("empty", "123", UserType.Type.EMPTY));
-        WITH_FRIENDS.add(new StaticUser("Bobert", "123", UserType.Type.WITH_FRIEND));
-        WITH_INCOME_REQUESTS.add(new StaticUser("Sofia", "123", UserType.Type.WITH_INCOME_REQUEST));
-        WITH_OUTCOME_REQUESTS.add(new StaticUser("Gandalf", "123", UserType.Type.WITH_OUTCOME_REQUEST));
-    }
+    private final UsersClient usersClient = new UserDbClient();
+    private final Faker faker = new Faker();
 
     @Override
     public void beforeEach(ExtensionContext context) {
-
-        ExtensionContext.Store store = context.getStore(NAMESPACE);
-        Map<UserType.Type, StaticUser> users =
-                (Map<UserType.Type, StaticUser>) store.getOrComputeIfAbsent(
-                        context.getUniqueId(),
-                        key -> new HashMap<UserType.Type, StaticUser>()
-                );
+        var store = context.getStore(NAMESPACE);
+        var usersMap = new HashMap<UserType.Type, StaticUser>();
+        var cleanupList = new ArrayList<UserJson>();
 
         Arrays.stream(context.getRequiredTestMethod().getParameters())
                 .filter(p -> AnnotationSupport.isAnnotated(p, UserType.class))
-                .forEach(parameter -> {
-                    UserType ut = parameter.getAnnotation(UserType.class);
-                    if (users.containsKey(ut.value())) {
+                .map(p -> p.getAnnotation(UserType.class))
+                .forEach(ut -> {
+                    if (usersMap.containsKey(ut.value())) {
                         throw new ExtensionConfigurationException(
                                 "Duplicate @UserType(" + ut.value() + ") in test method: "
                                         + context.getDisplayName()
                         );
                     }
-                    StaticUser user = pollUser(ut.value());
-                    users.put(ut.value(), user);
+                    var staticUser = createUserForType(ut.value(), cleanupList);
+                    usersMap.put(ut.value(), staticUser);
                 });
+
+        store.put(USERS_KEY + context.getUniqueId(), usersMap);
+        store.put(CLEANUP_KEY + context.getUniqueId(), cleanupList);
     }
-
-    private StaticUser pollUser(UserType.Type type) {
-        StopWatch sw = StopWatch.createStarted();
-        StaticUser user = null;
-
-        while (user == null && sw.getTime(TimeUnit.SECONDS) < 30) {
-            user = switch (type) {
-                case EMPTY -> EMPTY_USERS.poll();
-                case WITH_FRIEND -> WITH_FRIENDS.poll();
-                case WITH_INCOME_REQUEST -> WITH_INCOME_REQUESTS.poll();
-                case WITH_OUTCOME_REQUEST -> WITH_OUTCOME_REQUESTS.poll();
-            };
-        }
-
-        if (user == null) {
-            throw new IllegalStateException("no users found after 30 seconds");
-        }
-        return user;
-    }
-
 
     @Override
     public void afterEach(ExtensionContext context) {
-        Map<UserType.Type, StaticUser> users =
-                context.getStore(NAMESPACE)
-                        .remove(context.getUniqueId(), Map.class);
+        var store = context.getStore(NAMESPACE);
 
-        users.values().forEach(user -> {
-            switch (user.type()) {
-                case EMPTY -> EMPTY_USERS.add(user);
-                case WITH_FRIEND -> WITH_FRIENDS.add(user);
-                case WITH_INCOME_REQUEST -> WITH_INCOME_REQUESTS.add(user);
-                case WITH_OUTCOME_REQUEST -> WITH_OUTCOME_REQUESTS.add(user);
-            }
-        });
+        @SuppressWarnings("unchecked")
+        List<UserJson> cleanupList = store.remove(
+                CLEANUP_KEY + context.getUniqueId(), List.class);
+        store.remove(USERS_KEY + context.getUniqueId());
+
+        if (cleanupList != null) {
+            cleanupList.forEach(user -> {
+                try {
+                    usersClient.deleteUser(user);
+                } catch (Exception e) {
+                    log.error("Failed to delete user during cleanup: {}", user.username());
+                }
+            });
+        }
     }
 
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(ParameterContext parameterContext,
+                                     ExtensionContext extensionContext) throws ParameterResolutionException {
         return parameterContext.getParameter().getType().isAssignableFrom(StaticUser.class)
                 && AnnotationSupport.isAnnotated(parameterContext.getParameter(), UserType.class);
     }
 
     @Override
-    public StaticUser resolveParameter(ParameterContext pc, ExtensionContext context) {
+    public StaticUser resolveParameter(ParameterContext pc,
+                                       ExtensionContext context) throws ParameterResolutionException {
         UserType ut = pc.getParameter().getAnnotation(UserType.class);
+        @SuppressWarnings("unchecked")
         Map<UserType.Type, StaticUser> users = context.getStore(NAMESPACE)
-                .get(context.getUniqueId(), Map.class);
-
+                .get(USERS_KEY + context.getUniqueId(), Map.class);
         return users.get(ut.value());
+    }
+
+    private StaticUser createUserForType(UserType.Type type, List<UserJson> cleanupList) {
+        String username = faker.credentials().username();
+        String password = faker.credentials().password();
+        UserJson mainUser = usersClient.createUser(username, password);
+        cleanupList.add(mainUser);
+
+        return switch (type) {
+            case EMPTY -> new StaticUser(username, password, type, null);
+
+            case WITH_FRIEND -> {
+                String friendUsername = faker.credentials().username();
+                String friendPassword = faker.credentials().password();
+                UserJson friendUser = usersClient.createUser(friendUsername, friendPassword);
+                cleanupList.add(friendUser);
+                usersClient.addFriendship(mainUser, friendUser);
+                yield new StaticUser(username, password, type,
+                        new StaticUser(friendUsername, friendPassword, UserType.Type.EMPTY, null));
+            }
+
+            case WITH_INCOME_REQUEST -> {
+                String requesterUsername = faker.credentials().username();
+                String requesterPassword = faker.credentials().password();
+                UserJson requester = usersClient.createUser(requesterUsername, requesterPassword);
+                cleanupList.add(requester);
+                usersClient.addPendingRequest(requester, mainUser);
+                yield new StaticUser(username, password, type,
+                        new StaticUser(requesterUsername, requesterPassword, UserType.Type.EMPTY, null));
+            }
+
+            case WITH_OUTCOME_REQUEST -> {
+                String addresseeUsername = faker.credentials().username();
+                String addresseePassword = faker.credentials().password();
+                UserJson addressee = usersClient.createUser(addresseeUsername, addresseePassword);
+                cleanupList.add(addressee);
+                usersClient.addPendingRequest(mainUser, addressee);
+                yield new StaticUser(username, password, type,
+                        new StaticUser(addresseeUsername, addresseePassword, UserType.Type.EMPTY, null));
+            }
+        };
     }
 }

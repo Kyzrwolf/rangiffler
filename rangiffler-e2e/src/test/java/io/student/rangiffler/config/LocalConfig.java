@@ -15,8 +15,13 @@ public enum LocalConfig implements Config {
   public String registerUrl() { return "http://localhost:9000/register"; }
 
   @Override
-  public String jdbcUrl() {
-    return "jdbc:mysql://localhost:3306/rangiffler-auth";
+  public String authJdbcUrl() {
+    return "jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC";
+  }
+
+  @Override
+  public String userdataJdbcUrl() {
+    return "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
   }
 
   @Override

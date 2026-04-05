@@ -2,7 +2,6 @@ package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
 import io.student.rangiffler.config.Config;
-import io.student.rangiffler.jupiter.annotation.DisabledByIssue;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UsersQueueExtension;
 import io.student.rangiffler.page.LoginPage;
@@ -24,12 +23,12 @@ public class FriendsWebTests extends BaseTest {
                 .checkTravelPageIsOpen()
                 .clickPeopleBtn()
                 .clickFriendsBtn()
-                .checkUserIsPresentInPeopleList("beer");
+                .checkUserIsPresentInPeopleList(user.friend().username());
 
     }
 
     @Test
-    @DisabledByIssue("3")
+//    @DisabledByIssue("3")
     public void friendsTableShouldBeEmptyForNewUser(@UserType(EMPTY) UsersQueueExtension.StaticUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
@@ -47,7 +46,7 @@ public class FriendsWebTests extends BaseTest {
                 .checkTravelPageIsOpen()
                 .clickPeopleBtn()
                 .clickIncomeInvitationsBtn()
-                .checkUserIsPresentInPeopleList("bee");
+                .checkUserIsPresentInPeopleList(user.friend().username());
 
     }
 
@@ -59,7 +58,7 @@ public class FriendsWebTests extends BaseTest {
                 .checkTravelPageIsOpen()
                 .clickPeopleBtn()
                 .clickOutcomeInvitationsBtn()
-                .checkUserIsPresentInPeopleList("duck");
+                .checkUserIsPresentInPeopleList(user.friend().username());
 
     }
 }
