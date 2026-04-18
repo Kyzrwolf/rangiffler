@@ -37,6 +37,7 @@ public class LikeServiceImpl implements LikeService {
 
 
     @Override
+    @Transactional
     public Like addLike(UUID photoId, UUID userId) {
         var photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Фото с id %s не найдено".formatted(photoId)));
@@ -46,7 +47,7 @@ public class LikeServiceImpl implements LikeService {
 
         var existingLike = photoLikeRepository.findByPhotoIdAndUserId(photoId, userId);
         if (existingLike.isPresent()) {
-            throw new ResourceNotFoundException("Пользователь уже лайкал данное фото".formatted(userId));
+            throw new IllegalStateException("Пользователь уже лайкал данное фото".formatted(userId));
         }
 
         var like = new LikeEntity()

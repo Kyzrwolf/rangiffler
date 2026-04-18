@@ -14,6 +14,7 @@ import java.util.List;
 @Service
 public class CountryServiceImpl implements CountryService {
 
+    public static final String DATA_IMAGE_PNG_BASE_64 = "data:image/png;base64,";
     private final CountryRepository countryRepository;
 
     @Autowired
@@ -25,11 +26,11 @@ public class CountryServiceImpl implements CountryService {
     @Transactional(readOnly = true)
     public List<Country> getAllCountries() {
         return countryRepository.findAll().stream()
-                .map(this::toCountryGql)
+                .map(this::toCountryModel)
                 .toList();
     }
 
-    private Country toCountryGql(CountryEntity entity) {
+    private Country toCountryModel(CountryEntity entity) {
         return new Country()
                 .setCode(entity.getCode())
                 .setName(entity.getName())
@@ -38,6 +39,6 @@ public class CountryServiceImpl implements CountryService {
 
     private String toBase64DataUri(byte[] bytes) {
         if (bytes == null || bytes.length == 0) return "";
-        return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
+        return DATA_IMAGE_PNG_BASE_64 + Base64.getEncoder().encodeToString(bytes);
     }
 }

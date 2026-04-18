@@ -6,17 +6,19 @@ import io.student.rangiffler.data.entity.FriendshipStatus;
 import io.student.rangiffler.data.entity.UserEntity;
 import io.student.rangiffler.data.projection.UserWithStatus;
 import io.student.rangiffler.data.repository.CountryRepository;
+import io.student.rangiffler.data.repository.PhotoRepository;
 import io.student.rangiffler.data.repository.UserRepository;
 import io.student.rangiffler.exception.ResourceNotFoundException;
 import io.student.rangiffler.model.*;
 import io.student.rangiffler.service.api.UserService;
+import io.student.rangiffler.utils.UserMapperUtils;
 import io.student.rangiffler.utils.Utils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,17 +27,23 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final CountryRepository countryRepository;
+    private final UserMapperUtils userMapper;
+    private final PhotoRepository photoRepository;
 
-    public UserServiceImpl(UserRepository userRepository, CountryRepository countryRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+                           CountryRepository countryRepository,
+                           UserMapperUtils userMapper, PhotoRepository photoRepository) {
         this.userRepository = userRepository;
         this.countryRepository = countryRepository;
+        this.userMapper = userMapper;
+        this.photoRepository = photoRepository;
     }
 
     @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
         var userEntity = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден: " + username));
-        return entityToUser(userEntity, null);
+        return userMapper.toUser(userEntity, null);
     }
 
     @Override
@@ -49,28 +57,30 @@ public class UserServiceImpl implements UserService {
                             )));
                     return userRepository.save(newUser);
                 });
-        return entityToUser(userEntity, null);
+        return userMapper.toUser(userEntity, null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User currentUser(String username) {
         var userEntity = getRequiredUser(username);
-        return entityToUser(userEntity, null);
+        return userMapper.toUser(userEntity, null);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<User> allUsers(String username, Pageable pageable, String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank())
+        return hasSearch(searchQuery)
                 ? userRepository.findAllUsersWithFriendshipStatus(username, searchQuery, pageable)
                 .map(this::toUserFromProjection)
                 : userRepository.findAllUsersWithFriendshipStatus(username, pageable)
-                .map(this::toUserFromProjection);    }
+                .map(this::toUserFromProjection);
+    }
 
     @Override
     @Transactional(readOnly = true)
     public Page<User> friends(String username, Pageable pageable, String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank())
+        return hasSearch(searchQuery)
                 ? userRepository.findFriends(username, searchQuery, pageable)
                 .map(this::toUserFromProjection)
                 : userRepository.findFriends(username, pageable)
@@ -80,7 +90,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<User> incomeInvitations(String username, Pageable pageable, String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank())
+        return hasSearch(searchQuery)
                 ? userRepository.findIncomeInvitations(username, searchQuery, pageable)
                 .map(this::toUserFromProjection)
                 : userRepository.findIncomeInvitations(username, pageable)
@@ -90,7 +100,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<User> outcomeInvitations(String username, Pageable pageable, String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank())
+        return hasSearch(searchQuery)
                 ? userRepository.findOutcomeInvitations(username, searchQuery, pageable)
                 .map(this::toUserFromProjection)
                 : userRepository.findOutcomeInvitations(username, pageable)
@@ -119,7 +129,7 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity saved = userRepository.save(userEntity);
-        return entityToUser(saved, null);
+        return userMapper.toUser(saved, null);
     }
 
     @Override
@@ -131,7 +141,7 @@ public class UserServiceImpl implements UserService {
         currentUser.addFriends(FriendshipStatus.PENDING, friend);
         userRepository.save(currentUser);
 
-        return entityToUser(friend, FriendStatus.INVITATION_SENT);
+        return userMapper.toUser(friend, FriendStatus.INVITATION_SENT);
     }
 
     @Override
@@ -144,13 +154,14 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .filter(fe -> fe.getRequester().getUsername().equals(inviteUser.getUsername()))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalStateException("у пользователя %s отсутствуют запрос на дружбу от пользователя %s"
+                        .formatted(username, inviteUser.getUsername())));
 
         invite.setStatus(FriendshipStatus.ACCEPTED);
         currentUser.addFriends(FriendshipStatus.ACCEPTED, inviteUser);
         userRepository.save(currentUser);
 
-        return entityToUser(inviteUser, FriendStatus.FRIEND);
+        return userMapper.toUser(inviteUser, FriendStatus.FRIEND);
     }
 
     @Override
@@ -164,7 +175,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(currentUser);
         userRepository.save(friendToDecline);
-        return entityToUser(friendToDecline, null);
+        return userMapper.toUser(friendToDecline, null);
     }
 
     @Override
@@ -179,34 +190,41 @@ public class UserServiceImpl implements UserService {
         friend.removeInvites(currentUser);
         userRepository.save(currentUser);
         userRepository.save(friend);
-        return entityToUser(friend, null);
+        return userMapper.toUser(friend, null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Stat> stat(String username, boolean withFriends) {
-        return List.of();
+        var userEntity = getRequiredUser(username);
+
+        List<PhotoRepository.CountryPhotoCount> counts = withFriends
+                ? photoRepository.countByCountryForUserWithFriends(userEntity.getId())
+                : photoRepository.countByCountryForUser(userEntity.getId());
+
+        var stats = new ArrayList<Stat>();
+        counts.forEach(c -> {
+            CountryEntity countryEntity = countryRepository.findById(c.getCountryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("такой страны не существует"));
+            var country = userMapper.toCountry(countryEntity);
+
+            stats.add(new Stat()
+                    .setCount((int) c.getPhotoCount())
+                    .setCountry(country));
+        });
+
+        return stats;
     }
 
-    private User entityToUser(UserEntity entity, FriendStatus friendStatus) {
-        return new User()
-                .setId(entity.getId())
-                .setUsername(entity.getUsername())
-                .setFirstname(entity.getFirstname())
-                .setFirstname(entity.getLastName())
-                .setAvatar(Utils.bytesAsString(entity.getAvatar()))
-                .setFriendStatus(friendStatus)
-                .setLocation(entity.getCountry() != null ? entityToCountry(entity.getCountry()) : null);
+    private User toUserFromProjection(UserWithStatus projection) {
+        Country country = null;
+        if (projection.countryId() != null) {
+            country = countryRepository.findById(projection.countryId())
+                    .map(userMapper::toCountry)
+                    .orElse(null);
+        }
+        return userMapper.toUser(projection, country);
     }
-
-    private Country entityToCountry(CountryEntity entity) {
-        return new Country()
-                .setCode(entity.getCode())
-                .setName(entity.getName())
-                .setFlag(entity.getFlag() != null && entity.getFlag().length > 0
-                        ? "data:image/png;base64," + Base64.getEncoder().encodeToString(entity.getFlag())
-                        : "");
-    }
-
 
     private UserEntity getRequiredUser(String username) {
         return userRepository.findByUsername(username)
@@ -222,39 +240,7 @@ public class UserServiceImpl implements UserService {
                 ));
     }
 
-    private User toUserFromProjection(UserWithStatus projection) {
-        FriendStatus friendStatus = calculateFriendStatus(
-                projection.friendshipStatus(),
-                projection.isRequester()
-        );
-
-        Country country = null;
-        if (projection.countryId() != null) {
-            var countryEntity = countryRepository.findById(projection.countryId()).orElse(null);
-            if (countryEntity != null) {
-                country = entityToCountry(countryEntity);
-            }
-        }
-
-        return new User()
-                .setId(projection.id())
-                .setUsername(projection.username())
-                .setFirstname(projection.firstname())
-                .setSurname(projection.lastName())
-                .setAvatar(Utils.bytesAsString(projection.avatar()))
-                .setFriendStatus(friendStatus)
-                .setLocation(country);
-    }
-
-    private FriendStatus calculateFriendStatus(FriendshipStatus status, Boolean isRequester) {
-        if (status == FriendshipStatus.ACCEPTED) {
-            return FriendStatus.FRIEND;
-        }
-        if (status == FriendshipStatus.PENDING) {
-            return Boolean.TRUE.equals(isRequester)
-                    ? FriendStatus.INVITATION_SENT
-                    : FriendStatus.INVITATION_RECEIVED;
-        }
-        return null;
+    private boolean hasSearch(String searchQuery) {
+        return searchQuery != null && !searchQuery.isBlank();
     }
 }
