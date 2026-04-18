@@ -29,7 +29,7 @@ dependencies {
     // DB / Hibernate
     testImplementation(libs.p6spy)
     testImplementation(libs.hibernate.core)
-    testRuntimeOnly(libs.mysql)
+    testImplementation(libs.mysql)
 
     // Allure
     testImplementation(libs.allure.attachments)
@@ -52,6 +52,8 @@ dependencies {
     testImplementation(libs.sql.formatter)
     compileOnly(libs.jakarta.annotation)
     testImplementation("org.apache.commons:commons-lang3:3.14.0")
+    testImplementation(libs.atomikos)
+    testImplementation(libs.jta.api)
 
     // lombok
     testCompileOnly(libs.lombok)

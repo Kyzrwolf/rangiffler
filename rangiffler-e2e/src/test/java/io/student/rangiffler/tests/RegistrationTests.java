@@ -40,7 +40,6 @@ public class RegistrationTests extends BaseTest {
     @Test
     @DisplayName("Регистрация нового пользователя")
     public void shouldRegisterNewUser() {
-
         Selenide.open(CFG.registerUrl(), RegisterPage.class)
                 .registerNewUser(username, password)
                 .signIn()
