@@ -10,12 +10,15 @@ import io.student.rangiffler.model.Likes;
 import io.student.rangiffler.model.Photo;
 import io.student.rangiffler.model.PhotoInput;
 import io.student.rangiffler.service.api.LikeService;
+import io.student.rangiffler.utils.PhotoMapperUtils;
 import io.student.rangiffler.utils.Utils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -25,14 +28,16 @@ public class PhotoService {
     private final CountryRepository countryRepository;
     private final UserRepository userRepository;
     private final LikeService likeService;
+    private final PhotoMapperUtils photoMapper;
 
     public PhotoService(PhotoRepository photoRepository,
                         CountryRepository countryRepository,
-                        UserRepository userRepository, LikeService likeService) {
+                        UserRepository userRepository, LikeService likeService, PhotoMapperUtils photoMapper) {
         this.photoRepository = photoRepository;
         this.countryRepository = countryRepository;
         this.userRepository = userRepository;
         this.likeService = likeService;
+        this.photoMapper = photoMapper;
     }
 
     public Photo createPhoto(String username, PhotoInput photoInput) {
@@ -55,7 +60,7 @@ public class PhotoService {
         entity.setCreatedDate(LocalDateTime.now());
 
         PhotoEntity saved = photoRepository.save(entity);
-        var countryFlag = "data:image/png;base64," + Base64.getEncoder().encodeToString(countryEntity.getFlag());
+        var countryFlag = photoMapper.getPngImage(countryEntity.getFlag());
 
         return new Photo()
                 .setId(saved.getId())
@@ -94,12 +99,11 @@ public class PhotoService {
 
         boolean isOwner = photoEntity.getUserId().equals(userEntity.getId());
 
-        var countryFlag = "data:image/png;base64," +
-                Base64.getEncoder().encodeToString(photoEntity.getCountry().getFlag());
+        var countryFlag = photoMapper.getPngImage(photoEntity.getCountry().getFlag());
 
         return new Photo()
                 .setId(photoEntity.getId())
-                .setSrc("data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photoEntity.getPhoto()))
+                .setSrc(photoMapper.getJpegImage(photoEntity.getPhoto()))
                 .setCountry(new Country()
                         .setCode(photoEntity.getCountry().getCode())
                         .setName(photoEntity.getCountry().getName())
@@ -140,11 +144,11 @@ public class PhotoService {
         }
 
         PhotoEntity saved = photoRepository.save(photoEntity);
-        var countryFlag = "data:image/png;base64," + Base64.getEncoder().encodeToString(saved.getCountry().getFlag());
+        var countryFlag = photoMapper.getPngImage(saved.getCountry().getFlag());
 
         return new Photo()
                 .setId(saved.getId())
-                .setSrc("data:image/jpeg;base64," + Base64.getEncoder().encodeToString(saved.getPhoto()))
+                .setSrc(photoMapper.getJpegImage(saved.getPhoto()))
                 .setCountry(new Country()
                         .setCode(saved.getCountry().getCode())
                         .setName(saved.getCountry().getName())
@@ -153,5 +157,46 @@ public class PhotoService {
                 .setCreationDate(saved.getCreatedDate().toLocalDate())
                 .setLikes(likeService.getPhotoLikes(saved.getId()))
                 .setOwner(true);
+    }
+
+    public Slice<Photo> getPhotosByUserId(UUID userId, Pageable pageable) {
+        var photoEntities = photoRepository.findByUserIdOrderByCreatedDateDesc(userId, pageable);
+        var photos = photoEntities.getContent().stream()
+                .map(entity -> convertToPhoto(entity, userId))
+                .toList();
+        return new SliceImpl<>(photos, pageable, photoEntities.hasNext());
+    }
+
+    public Slice<Photo> getPhotosByFeed(String username, boolean withFriends, Pageable pageable) {
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Пользователь %s не найден".formatted(username)
+                ));
+
+        var photoEntities = withFriends
+                ? photoRepository.findByUserIdAndFriendsOrderByCreatedDateDesc(user.getId(), pageable)
+                : photoRepository.findByUserIdOrderByCreatedDateDesc(user.getId(), pageable);
+
+        var photos = photoEntities.getContent().stream()
+                .map(entity -> convertToPhoto(entity, user.getId()))
+                .toList();
+
+        return new SliceImpl<>(photos, pageable, photoEntities.hasNext());
+    }
+
+    private Photo convertToPhoto(PhotoEntity entity, UUID currentUserId) {
+        var countryFlag = photoMapper.getPngImage(entity.getCountry().getFlag());
+
+        return new Photo()
+                .setId(entity.getId())
+                .setSrc(photoMapper.getJpegImage(entity.getPhoto()))
+                .setCountry(new Country()
+                        .setCode(entity.getCountry().getCode())
+                        .setName(entity.getCountry().getName())
+                        .setFlag(countryFlag))
+                .setDescription(entity.getDescription())
+                .setCreationDate(entity.getCreatedDate().toLocalDate())
+                .setOwner(entity.getUserId().equals(currentUserId))
+                .setLikes(new Likes());
     }
 }

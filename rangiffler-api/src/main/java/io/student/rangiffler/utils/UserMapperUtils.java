@@ -9,12 +9,11 @@ import io.student.rangiffler.model.FriendStatus;
 import io.student.rangiffler.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
-
 @Component
 public class UserMapperUtils {
 
     private static final String DATA_IMAGE_PNG_BASE_64 = "data:image/png;base64,";
+    private final PhotoMapperUtils photoMapper = new PhotoMapperUtils();
 
     public User toUser(UserEntity entity, FriendStatus friendStatus) {
         return new User()
@@ -43,7 +42,7 @@ public class UserMapperUtils {
                 .setCode(entity.getCode())
                 .setName(entity.getName())
                 .setFlag(entity.getFlag() != null && entity.getFlag().length > 0
-                        ? DATA_IMAGE_PNG_BASE_64 + Base64.getEncoder().encodeToString(entity.getFlag())
+                        ? photoMapper.getPngImage(entity.getFlag())
                         : "");
     }
 
