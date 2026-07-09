@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapperUtils {
 
-    private static final String DATA_IMAGE_PNG_BASE_64 = "data:image/png;base64,";
     private final PhotoMapperUtils photoMapper = new PhotoMapperUtils();
 
     public User toUser(UserEntity entity, FriendStatus friendStatus) {
