@@ -1,4 +1,4 @@
-package io.student.rangiffler.models;
+package io.student.rangiffler.model;
 
 import java.util.UUID;
 

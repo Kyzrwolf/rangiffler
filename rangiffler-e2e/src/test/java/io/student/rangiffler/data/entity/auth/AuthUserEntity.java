@@ -1,4 +1,4 @@
-package io.student.rangiffler.data.auth;
+package io.student.rangiffler.data.entity.auth;
 
 import lombok.Data;
 

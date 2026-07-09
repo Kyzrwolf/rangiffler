@@ -1,4 +1,4 @@
-package io.student.rangiffler.data.userdata;
+package io.student.rangiffler.data.entity.userdata;
 
 import lombok.Data;
 
