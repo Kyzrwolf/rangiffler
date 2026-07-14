@@ -1,6 +1,7 @@
 package io.student.rangiffler.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.qameta.allure.Step;
 import io.student.rangiffler.config.Config;
 import lombok.SneakyThrows;
 import retrofit2.Response;
@@ -20,6 +21,7 @@ public class GithubApiClient {
 
     private final GithubApi githubApi = retrofit.create(GithubApi.class);
 
+    @Step("Получить статус issue '{issueNumber}' на GitHub")
     @SneakyThrows
     @Nonnull
     public String issueState(@Nonnull String issueNumber) {

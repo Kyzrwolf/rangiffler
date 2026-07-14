@@ -1,5 +1,6 @@
 package io.student.rangiffler.utils;
 
+import io.qameta.allure.Step;
 import lombok.experimental.UtilityClass;
 
 import javax.annotation.Nonnull;
@@ -20,6 +21,7 @@ public class RandomUtils {
      * @param length the number of characters in the resulting string
      * @return a random alphanumeric string of the given length
      */
+    @Step("Сгенерировать случайную буквенно-цифровую строку длиной {length}")
     @Nonnull
     public String generateRandomAlphanumericString(int length) {
         var leftLimit = 48;

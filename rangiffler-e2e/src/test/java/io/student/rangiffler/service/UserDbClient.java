@@ -2,6 +2,7 @@ package io.student.rangiffler.service;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.cj.jdbc.MysqlXADataSource;
+import io.qameta.allure.Step;
 import io.student.rangiffler.config.Config;
 import io.student.rangiffler.data.entity.auth.AuthUserEntity;
 import io.student.rangiffler.data.entity.auth.AuthorityEntity;
@@ -128,6 +129,7 @@ public class UserDbClient implements UsersClient {
         return user;
     };
 
+    @Step("Создать пользователя '{username}' в базе данных")
     @Override
     @Nonnull
     public UserJson createUser(@Nonnull String username, @Nonnull String password) {
@@ -171,6 +173,7 @@ public class UserDbClient implements UsersClient {
         return new UserJson(authUserId, udUserId, username, password, null, null, null);
     }
 
+    @Step("Найти пользователя '{username}' в базе данных")
     @Override
     @Nonnull
     public UserJson findByUsername(@Nonnull String username) {
@@ -206,6 +209,7 @@ public class UserDbClient implements UsersClient {
         );
     }
 
+    @Step("Добавить дружбу между пользователями '{requester.username}' и '{addressee.username}'")
     @Override
     public void addFriendship(@Nonnull UserJson requester, @Nonnull UserJson addressee) {
         JdbcTemplate jdbc = new JdbcTemplate(userdataReadDataSource());
@@ -215,6 +219,7 @@ public class UserDbClient implements UsersClient {
                 addressee.udId().toString(), requester.udId().toString(), "ACCEPTED");
     }
 
+    @Step("Добавить заявку в друзья от '{requester.username}' пользователю '{addressee.username}'")
     @Override
     public void addPendingRequest(@Nonnull UserJson requester, @Nonnull UserJson addressee) {
         new JdbcTemplate(userdataReadDataSource())
@@ -222,6 +227,7 @@ public class UserDbClient implements UsersClient {
                         requester.udId().toString(), addressee.udId().toString(), "PENDING");
     }
 
+    @Step("Удалить пользователя '{user.username}' из базы данных")
     @Override
     public void deleteUser(@Nonnull UserJson user) {
         Connection rawAuthConn = null;
