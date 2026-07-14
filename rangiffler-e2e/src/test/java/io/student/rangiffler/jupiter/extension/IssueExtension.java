@@ -9,13 +9,16 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.commons.support.SearchOption;
 
+import javax.annotation.Nonnull;
+
 @Slf4j
 public class IssueExtension implements ExecutionCondition {
 
     private final GithubApiClient githubApiClient = new GithubApiClient();
 
     @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+    @Nonnull
+    public ConditionEvaluationResult evaluateExecutionCondition(@Nonnull ExtensionContext context) {
         return AnnotationSupport.findAnnotation(
                 context.getRequiredTestMethod(),
                 DisabledByIssue.class

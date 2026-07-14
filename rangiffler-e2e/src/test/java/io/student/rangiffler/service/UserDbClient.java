@@ -15,7 +15,11 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.atomikos.icatch.jta.UserTransactionManager;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.UUID;
 
 public class UserDbClient implements UsersClient {
@@ -55,7 +59,7 @@ public class UserDbClient implements UsersClient {
             "VALUES (UUID_TO_BIN(?, true), ?, UUID_TO_BIN(?, true))";
 
     private static final String SELECT_USERDATA_USER_SQL =
-            "SELECT BIN_TO_UUID(u.id, true) AS id, u.username, u.firstname, u.lastName " +
+            "SELECT BIN_TO_UUID(u.id, true) AS id, u.username, u.firstname, u.lastName, u.avatar " +
             "FROM `user` u WHERE u.username = ?";
 
     private static final String INSERT_FRIENDSHIP_SQL =
@@ -101,7 +105,7 @@ public class UserDbClient implements UsersClient {
         }
     }
 
-    private static final ResultSetExtractor<AuthUserEntity> AUTH_USER_EXTRACTOR = rs -> {
+    private static final ResultSetExtractor<AuthUserEntity> AUTH_USER_EXTRACTOR = (@Nonnull ResultSet rs) -> {
         AuthUserEntity user = null;
         while (rs.next()) {
             if (user == null) {
@@ -125,7 +129,8 @@ public class UserDbClient implements UsersClient {
     };
 
     @Override
-    public UserJson createUser(String username, String password) {
+    @Nonnull
+    public UserJson createUser(@Nonnull String username, @Nonnull String password) {
         UUID authUserId = UUID.randomUUID();
         UUID udUserId = UUID.randomUUID();
         String encodedPassword = PASSWORD_ENCODER.encode(password);
@@ -167,7 +172,8 @@ public class UserDbClient implements UsersClient {
     }
 
     @Override
-    public UserJson findByUsername(String username) {
+    @Nonnull
+    public UserJson findByUsername(@Nonnull String username) {
         AuthUserEntity authUser = new JdbcTemplate(authReadDataSource())
                 .query(SELECT_AUTH_USER_SQL, AUTH_USER_EXTRACTOR, username);
 
@@ -177,12 +183,13 @@ public class UserDbClient implements UsersClient {
 
         UdUserEntity udUser = new JdbcTemplate(userdataReadDataSource())
                 .queryForObject(SELECT_USERDATA_USER_SQL,
-                        (rs, rowNum) -> {
+                        (@Nonnull ResultSet rs, int rowNum) -> {
                             UdUserEntity u = new UdUserEntity();
                             u.setId(UUID.fromString(rs.getString("id")));
                             u.setUsername(rs.getString("username"));
                             u.setFirstname(rs.getString("firstname"));
                             u.setLastName(rs.getString("lastName"));
+                            u.setAvatar(rs.getBytes("avatar"));
                             return u;
                         }, username);
 
@@ -193,12 +200,14 @@ public class UserDbClient implements UsersClient {
                 authUser.getPassword(),
                 udUser != null ? udUser.getFirstname() : null,
                 udUser != null ? udUser.getLastName() : null,
-                null
+                udUser != null && udUser.getAvatar() != null
+                        ? new String(udUser.getAvatar(), StandardCharsets.UTF_8)
+                        : null
         );
     }
 
     @Override
-    public void addFriendship(UserJson requester, UserJson addressee) {
+    public void addFriendship(@Nonnull UserJson requester, @Nonnull UserJson addressee) {
         JdbcTemplate jdbc = new JdbcTemplate(userdataReadDataSource());
         jdbc.update(INSERT_FRIENDSHIP_SQL,
                 requester.udId().toString(), addressee.udId().toString(), "ACCEPTED");
@@ -207,14 +216,14 @@ public class UserDbClient implements UsersClient {
     }
 
     @Override
-    public void addPendingRequest(UserJson requester, UserJson addressee) {
+    public void addPendingRequest(@Nonnull UserJson requester, @Nonnull UserJson addressee) {
         new JdbcTemplate(userdataReadDataSource())
                 .update(INSERT_FRIENDSHIP_SQL,
                         requester.udId().toString(), addressee.udId().toString(), "PENDING");
     }
 
     @Override
-    public void deleteUser(UserJson user) {
+    public void deleteUser(@Nonnull UserJson user) {
         Connection rawAuthConn = null;
         Connection rawUdConn = null;
         try {
@@ -246,11 +255,13 @@ public class UserDbClient implements UsersClient {
     }
 
     // helpers
-    private static JdbcTemplate jdbcTemplate(Connection conn) {
+    @Nonnull
+    private static JdbcTemplate jdbcTemplate(@Nonnull Connection conn) {
         return new JdbcTemplate(new SingleConnectionDataSource(conn, true));
     }
 
-    private static AtomikosDataSourceBean buildAtomikosDs(String name, String jdbcUrl) throws Exception {
+    @Nonnull
+    private static AtomikosDataSourceBean buildAtomikosDs(@Nonnull String name, @Nonnull String jdbcUrl) throws Exception {
         MysqlXADataSource xaDs = new MysqlXADataSource();
         xaDs.setUrl(jdbcUrl);
         xaDs.setUser(CFG.dbUsername());
@@ -264,6 +275,7 @@ public class UserDbClient implements UsersClient {
         return ds;
     }
 
+    @Nonnull
     private static UUID loadDefaultCountryId() {
         String idStr = new JdbcTemplate(
                 new DriverManagerDataSource(CFG.userdataJdbcUrl(), CFG.dbUsername(), CFG.dbPassword()))
@@ -274,15 +286,17 @@ public class UserDbClient implements UsersClient {
         return UUID.fromString(idStr);
     }
 
+    @Nonnull
     private static DriverManagerDataSource authReadDataSource() {
         return new DriverManagerDataSource(CFG.authJdbcUrl(), CFG.dbUsername(), CFG.dbPassword());
     }
 
+    @Nonnull
     private static DriverManagerDataSource userdataReadDataSource() {
         return new DriverManagerDataSource(CFG.userdataJdbcUrl(), CFG.dbUsername(), CFG.dbPassword());
     }
 
-    private static void closeQuietly(Connection conn) {
+    private static void closeQuietly(@Nullable Connection conn) {
         if (conn != null) {
             try { conn.close(); } catch (Exception ignored) {}
         }

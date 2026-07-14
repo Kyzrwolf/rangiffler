@@ -2,6 +2,7 @@ package io.student.rangiffler.utils;
 
 import lombok.experimental.UtilityClass;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 @UtilityClass
@@ -19,6 +20,7 @@ public class RandomUtils {
      * @param length the number of characters in the resulting string
      * @return a random alphanumeric string of the given length
      */
+    @Nonnull
     public String generateRandomAlphanumericString(int length) {
         var leftLimit = 48;
         var rightLimit = 122;

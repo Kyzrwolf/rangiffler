@@ -8,12 +8,14 @@ import io.student.rangiffler.page.LoginPage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nonnull;
+
 public class LoginTests extends BaseTest {
     private static final Config CFG = Config.getInstance();
 
     @Test
     @DisplayName("Успешная авторизация")
-    void mainPageShouldBeDisplayedAfterSuccessfulLogin(@UserType() UserExtension.TestUser user) {
+    void mainPageShouldBeDisplayedAfterSuccessfulLogin(@UserType() @Nonnull UserExtension.TestUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
                 .login(user.username(), user.password())
@@ -22,7 +24,7 @@ public class LoginTests extends BaseTest {
 
     @Test
     @DisplayName("|-| Неуспешная авторизация с неправильным паролем")
-    public void userShouldStayOnLoginPageAfterLoginWithBadCredentials(@UserType() UserExtension.TestUser user) {
+    public void userShouldStayOnLoginPageAfterLoginWithBadCredentials(@UserType() @Nonnull UserExtension.TestUser user) {
         Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
                 .setUsername(user.username())

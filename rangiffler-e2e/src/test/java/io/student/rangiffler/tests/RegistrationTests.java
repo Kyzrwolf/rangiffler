@@ -10,6 +10,8 @@ import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nonnull;
+
 public class RegistrationTests extends BaseTest {
 
     private static final Config CFG = Config.getInstance();
@@ -19,7 +21,7 @@ public class RegistrationTests extends BaseTest {
 
     @Test
     @DisplayName("|-| Пользователь уже зарегистрирован")
-    public void shouldNotRegisterUserWithExistingUsername(@UserType() UserExtension.TestUser user) {
+    public void shouldNotRegisterUserWithExistingUsername(@UserType() @Nonnull UserExtension.TestUser user) {
         Selenide.open(CFG.registerUrl(), RegisterPage.class)
                 .registerNewUser(user.username(), password)
                 .checkRegistrationFailed(user.username());

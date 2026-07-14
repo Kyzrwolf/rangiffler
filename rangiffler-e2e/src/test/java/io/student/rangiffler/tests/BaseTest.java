@@ -14,6 +14,7 @@ public class BaseTest {
     @BeforeAll
     static void setUp() {
         Configuration.browser = CFG.browser();
+        Configuration.browserSize = CFG.browserSize();
     }
 
     @BeforeEach

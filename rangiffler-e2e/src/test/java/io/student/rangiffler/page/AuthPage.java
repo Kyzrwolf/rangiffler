@@ -2,6 +2,8 @@ package io.student.rangiffler.page;
 
 import com.codeborne.selenide.SelenideElement;
 
+import javax.annotation.Nonnull;
+
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
@@ -12,23 +14,28 @@ public class AuthPage {
     private final SelenideElement signInBtn = $(".form__submit");
     private final SelenideElement badCredentialsError = $(".form__error");
 
-    public TravelsMapPage login(String username, String password) {
+    @Nonnull
+    public TravelsMapPage login(@Nonnull String username, @Nonnull String password) {
         usernameInput.setValue(username);
         passwordInput.setValue(password);
         signInBtn.click();
         return new TravelsMapPage();
     }
 
-    public AuthPage setUsername(String username) {
+
+    @Nonnull
+    public AuthPage setUsername(@Nonnull String username) {
         usernameInput.setValue(username);
         return this;
     }
 
-    public AuthPage setPassword(String password) {
+    @Nonnull
+    public AuthPage setPassword(@Nonnull String password) {
         passwordInput.setValue(password);
         return this;
     }
 
+    @Nonnull
     public AuthPage clickSignInBtn() {
         signInBtn.click();
         return this;
