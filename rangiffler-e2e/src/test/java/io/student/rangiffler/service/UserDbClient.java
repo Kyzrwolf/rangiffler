@@ -16,11 +16,13 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.atomikos.icatch.jta.UserTransactionManager;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.Objects;
 import java.util.UUID;
 
 public class UserDbClient implements UsersClient {
@@ -32,18 +34,18 @@ public class UserDbClient implements UsersClient {
     // sql auth schema
     private static final String INSERT_AUTH_USER_SQL =
             "INSERT INTO `user` (id, username, password, enabled, account_non_expired, account_non_locked, credentials_non_expired) " +
-            "VALUES (UUID_TO_BIN(?, true), ?, ?, true, true, true, true)";
+                    "VALUES (UUID_TO_BIN(?, true), ?, ?, true, true, true, true)";
 
     private static final String INSERT_AUTHORITY_SQL =
             "INSERT INTO `authority` (user_id, authority) VALUES (UUID_TO_BIN(?, true), ?)";
 
     private static final String SELECT_AUTH_USER_SQL =
             "SELECT BIN_TO_UUID(u.id, true) AS id, u.username, u.password, u.enabled, " +
-            "u.account_non_expired, u.account_non_locked, u.credentials_non_expired, " +
-            "a.authority " +
-            "FROM `user` u " +
-            "LEFT JOIN `authority` a ON a.user_id = u.id " +
-            "WHERE u.username = ?";
+                    "u.account_non_expired, u.account_non_locked, u.credentials_non_expired, " +
+                    "a.authority " +
+                    "FROM `user` u " +
+                    "LEFT JOIN `authority` a ON a.user_id = u.id " +
+                    "WHERE u.username = ?";
 
     private static final String DELETE_AUTHORITY_SQL =
             "DELETE FROM `authority` WHERE user_id = UUID_TO_BIN(?, true)";
@@ -57,22 +59,25 @@ public class UserDbClient implements UsersClient {
 
     private static final String INSERT_USERDATA_USER_SQL =
             "INSERT INTO `user` (id, username, country_id) " +
-            "VALUES (UUID_TO_BIN(?, true), ?, UUID_TO_BIN(?, true))";
+                    "VALUES (UUID_TO_BIN(?, true), ?, UUID_TO_BIN(?, true))";
 
     private static final String SELECT_USERDATA_USER_SQL =
             "SELECT BIN_TO_UUID(u.id, true) AS id, u.username, u.firstname, u.lastName, u.avatar " +
-            "FROM `user` u WHERE u.username = ?";
+                    "FROM `user` u WHERE u.username = ?";
 
     private static final String INSERT_FRIENDSHIP_SQL =
             "INSERT INTO `friendship` (requester_id, addressee_id, created_date, status) " +
-            "VALUES (UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), NOW(), ?)";
+                    "VALUES (UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), NOW(), ?)";
 
     private static final String DELETE_FRIENDSHIP_SQL =
             "DELETE FROM `friendship` " +
-            "WHERE requester_id = UUID_TO_BIN(?, true) OR addressee_id = UUID_TO_BIN(?, true)";
+                    "WHERE requester_id = UUID_TO_BIN(?, true) OR addressee_id = UUID_TO_BIN(?, true)";
 
     private static final String DELETE_USERDATA_USER_SQL =
             "DELETE FROM `user` WHERE id = UUID_TO_BIN(?, true)";
+
+    private static final String SELECT_RANDOM_COUNTRY_SQL =
+            "SELECT name FROM `country` ORDER BY RAND() LIMIT 1";
 
     private static final UserTransactionManager TRANSACTION_MANAGER;
     private static final AtomikosDataSourceBean AUTH_DS;
@@ -282,14 +287,22 @@ public class UserDbClient implements UsersClient {
     }
 
     @Nonnull
+    @Step("Получить дефолтный код страны")
     private static UUID loadDefaultCountryId() {
         String idStr = new JdbcTemplate(
-                new DriverManagerDataSource(CFG.userdataJdbcUrl(), CFG.dbUsername(), CFG.dbPassword()))
+                userdataReadDataSource())
                 .queryForObject(SELECT_DEFAULT_COUNTRY_SQL, String.class);
         if (idStr == null) {
             throw new RuntimeException("Default country 'ru' not found in rangiffler-api schema");
         }
         return UUID.fromString(idStr);
+    }
+
+    @Nonnull
+    @Step("Получить рандомную страну из БД")
+    public String getRandomCountryName() {
+        return Objects.requireNonNull(new JdbcTemplate(userdataReadDataSource())
+                .queryForObject(SELECT_RANDOM_COUNTRY_SQL, String.class));
     }
 
     @Nonnull
@@ -304,11 +317,17 @@ public class UserDbClient implements UsersClient {
 
     private static void closeQuietly(@Nullable Connection conn) {
         if (conn != null) {
-            try { conn.close(); } catch (Exception ignored) {}
+            try {
+                conn.close();
+            } catch (Exception ignored) {
+            }
         }
     }
 
     private static void rollbackQuietly() {
-        try { TRANSACTION_MANAGER.rollback(); } catch (Exception ignored) {}
+        try {
+            TRANSACTION_MANAGER.rollback();
+        } catch (Exception ignored) {
+        }
     }
 }

@@ -24,10 +24,10 @@ public class ProfilePage {
         firstNameInput.setValue(firstName);
         return this;
     }
-    @Step("Установить фамилию '{lastName}'")
+    @Step("Установить фамилию '{surname}'")
     @Nonnull
-    public ProfilePage setSurname(@Nonnull String lastName) {
-        surNameInput.setValue(lastName);
+    public ProfilePage setSurname(@Nonnull String surname) {
+        surNameInput.setValue(surname);
         return this;
     }
 

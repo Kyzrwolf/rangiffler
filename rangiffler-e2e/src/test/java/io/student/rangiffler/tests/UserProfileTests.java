@@ -7,6 +7,7 @@ import io.student.rangiffler.jupiter.annotation.ScreenShotTest;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UserExtension;
 import io.student.rangiffler.page.LoginPage;
+import io.student.rangiffler.service.UserDbClient;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,13 +29,14 @@ public class UserProfileTests extends BaseTest {
 
     private static final Config CFG = Config.getInstance();
     private Faker faker = new Faker();
+    private final UserDbClient usersClient = new UserDbClient();
 
     @ScreenShotTest("img/expected_avatar.png")
     @DisplayName("Редактирование профиля пользователя")
     public void changeUserProfile(@UserType(EMPTY) @Nonnull UserExtension.TestUser user, @Nonnull BufferedImage expected) throws IOException {
         var firstName = faker.name().firstName();
         var surname = faker.name().lastName();
-        var location = faker.country().name();
+        var location = usersClient.getRandomCountryName();
         var profilePage = Selenide.open(CFG.frontUrl(), LoginPage.class)
                 .clickLoginBtn()
                 .login(user.username(), user.password())
@@ -47,8 +49,8 @@ public class UserProfileTests extends BaseTest {
         Selenide.refresh();
 
         profilePage.checkFirstName(firstName)
-                .checkSurname(surname);
-//                .checkLocation(location);
+                .checkSurname(surname)
+                .checkLocation(location);
 
         var actualAvatar = ImageIO.read($(".MuiAvatar-img").screenshot());
         var imageDiff = new ImageDiffer().makeDiff(expected, actualAvatar);
