@@ -2,7 +2,6 @@ package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
 import io.qameta.allure.Allure;
-import io.student.rangiffler.config.Config;
 import io.student.rangiffler.jupiter.annotation.ScreenShotTest;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UserExtension;
@@ -27,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ExtendWith(UserExtension.class)
 public class UserProfileTests extends BaseTest {
 
-    private static final Config CFG = Config.getInstance();
     private Faker faker = new Faker();
     private final UserDbClient usersClient = new UserDbClient();
 

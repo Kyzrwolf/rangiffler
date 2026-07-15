@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 public class BaseTest {
-    private static final Config CFG = LocalConfig.INSTANCE;
+    protected static final Config CFG = LocalConfig.INSTANCE;
 
     @BeforeAll
     static void setUp() {
