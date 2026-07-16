@@ -2,24 +2,20 @@ package io.student.rangiffler.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.qameta.allure.Step;
-import io.student.rangiffler.config.Config;
 import lombok.SneakyThrows;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import javax.annotation.Nonnull;
 
-public class GithubApiClient {
+public class GithubApiClient extends RestClient {
 
     private static final String GH_TOKEN_ENV = "GITHUB_TOKEN";
+    private final GithubApi githubApi;
 
-    private final Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl(Config.getInstance().githubUrl())
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build();
-
-    private final GithubApi githubApi = retrofit.create(GithubApi.class);
+    public GithubApiClient() {
+        super(CFG.githubUrl());
+        githubApi = retrofit.create(GithubApi.class);
+    }
 
     @Step("Получить статус issue '{issueNumber}' на GitHub")
     @SneakyThrows

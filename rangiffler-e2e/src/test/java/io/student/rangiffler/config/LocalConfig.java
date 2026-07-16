@@ -1,5 +1,7 @@
 package io.student.rangiffler.config;
 
+import org.springframework.lang.NonNull;
+
 import javax.annotation.Nonnull;
 
 public enum LocalConfig implements Config {
@@ -19,6 +21,12 @@ public enum LocalConfig implements Config {
   @Nonnull
   public String frontUrl() {
     return "http://localhost:3001";
+  }
+
+  @NonNull
+  @Override
+  public String authUrl() {
+    return "http://localhost:9000/";
   }
 
   @Override

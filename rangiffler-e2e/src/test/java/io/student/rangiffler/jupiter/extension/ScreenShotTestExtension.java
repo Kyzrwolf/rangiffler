@@ -45,8 +45,9 @@ public class ScreenShotTestExtension implements ParameterResolver, TestExecution
     }
 
     public static void setExpected(@Nonnull BufferedImage expected) {
-
+        //TODO your code may be here
     }
+
     @Nullable
     public static BufferedImage getExpected() {
         return null;
