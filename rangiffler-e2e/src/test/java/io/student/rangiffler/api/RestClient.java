@@ -43,7 +43,7 @@ public abstract class RestClient {
             }
         }
 
-        builder.addNetworkInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
+        builder.addNetworkInterceptor(new HttpLoggingInterceptor().setLevel(level));
         builder.cookieJar(
               new JavaNetCookieJar(new CookieManager(
                       ThreadSafeCookieStore.INSTANCE,
@@ -54,7 +54,7 @@ public abstract class RestClient {
         this.retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(okHttpClient)
-                .addConverterFactory(JacksonConverterFactory.create())
+                .addConverterFactory(factory)
                 .build();
     }
 

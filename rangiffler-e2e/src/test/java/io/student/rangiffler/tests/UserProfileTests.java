@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static com.codeborne.selenide.Selenide.$;
+import static io.qameta.allure.Allure.step;
 import static io.student.rangiffler.jupiter.annotation.UserType.Type.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -31,7 +32,7 @@ public class UserProfileTests extends BaseTest {
 
     @ScreenShotTest("img/expected_avatar.png")
     @DisplayName("Редактирование профиля пользователя")
-    public void changeUserProfile(@UserType(EMPTY) @Nonnull UserExtension.TestUser user, @Nonnull BufferedImage expected) throws IOException {
+    public void changeUserProfile(@UserType(EMPTY) @Nonnull UserExtension.TestUser user, @Nonnull BufferedImage expected) {
         var firstName = faker.name().firstName();
         var surname = faker.name().lastName();
         var location = usersClient.getRandomCountryName();
@@ -46,30 +47,33 @@ public class UserProfileTests extends BaseTest {
                 .clickSaveBtn();
         Selenide.refresh();
 
-        profilePage.checkFirstName(firstName)
-                .checkSurname(surname)
-                .checkLocation(location);
+        step("Выполняем проверки", () -> {
+            profilePage.checkFirstName(firstName)
+                    .checkSurname(surname)
+                    .checkLocation(location);
 
-        var actualAvatar = ImageIO.read($(".MuiAvatar-img").screenshot());
-        var imageDiff = new ImageDiffer().makeDiff(expected, actualAvatar);
-        var resultImage = imageDiff.getMarkedImage();
-        Allure.addAttachment(
-                "diff image",
-                "image/png",
-                new ByteArrayInputStream(imageToBytes(resultImage)),
-                "png"
-        );
+            var actualAvatar = ImageIO.read($(".MuiAvatar-img").screenshot());
+            var imageDiff = new ImageDiffer().makeDiff(expected, actualAvatar);
+            var resultImage = imageDiff.getMarkedImage();
+            Allure.addAttachment(
+                    "diff image",
+                    "image/png",
+                    new ByteArrayInputStream(imageToBytes(resultImage)),
+                    "png"
+            );
 
-        assertFalse(imageDiff.hasDiff(), "Avatar image is different");
+            assertFalse(imageDiff.hasDiff(), "Avatar image is different");
+        });
+
     }
 
-        @Nonnull
-        private static byte[] imageToBytes(@Nonnull BufferedImage image) {
-            try (var outputStream = new ByteArrayOutputStream()) {
-                ImageIO.write(image, "png", outputStream);
-                return outputStream.toByteArray();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    @Nonnull
+    private static byte[] imageToBytes(@Nonnull BufferedImage image) {
+        try (var outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "png", outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
 }

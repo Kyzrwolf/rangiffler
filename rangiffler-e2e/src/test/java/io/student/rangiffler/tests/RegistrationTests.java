@@ -1,12 +1,15 @@
 package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
+import io.student.rangiffler.api.AuthApiClient;
 import io.student.rangiffler.config.Config;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UserExtension;
+import io.student.rangiffler.page.LoginPage;
 import io.student.rangiffler.page.RegisterPage;
 import io.student.rangiffler.utils.RandomUtils;
 import net.datafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +19,25 @@ public class RegistrationTests extends BaseTest {
 
     private static final Config CFG = Config.getInstance();
     private final Faker faker = new Faker();
-    private final String username = faker.credentials().username();
-    private final String password = faker.credentials().password(3,12);
+    private volatile String username;
+    private volatile String password;
+    private final AuthApiClient authApiClient = new AuthApiClient();
+
+    @BeforeEach
+    public void beforeEach() {
+        username = faker.credentials().username();
+        password = faker.credentials().password(3,12);
+    }
+
+    @Test
+    @DisplayName("Регистрация пользователя через API")
+    public void shouldRegisterUserViaApi() {
+        authApiClient.registerUser(username, password);
+        Selenide.open(CFG.frontUrl(), LoginPage.class)
+                .clickLoginBtn()
+                .login(username, password)
+                .checkTravelPageIsOpen();
+    }
 
     @Test
     @DisplayName("|-| Пользователь уже зарегистрирован")

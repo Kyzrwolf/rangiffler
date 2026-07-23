@@ -1,5 +1,7 @@
 package io.student.rangiffler.api.core;
 
+import io.student.rangiffler.exceptions.BrokenTestException;
+
 import java.net.CookieManager;
 import java.net.CookieStore;
 import java.net.HttpCookie;
@@ -48,11 +50,11 @@ public enum ThreadSafeCookieStore implements CookieStore {
     }
 
     public String cookieValue(String cookieName) {
-        return getStore().getCookies().stream()
+        return getCookies().stream()
             .filter(cookie -> cookie.getName().equals(cookieName))
             .findFirst()
             .map(HttpCookie::getValue)
-            .orElseThrow();
+            .orElseThrow(() -> new BrokenTestException("Can`t find cookie with name %s".formatted(cookieName)));
     }
 
     private CookieStore getStore() {
