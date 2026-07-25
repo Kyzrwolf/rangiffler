@@ -4,11 +4,13 @@ import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
-public class TravelsMapPage {
+@ParametersAreNonnullByDefault
+public class TravelsMapPage extends BasePage<TravelsMapPage> {
 
     public SelenideElement worldMap = $(".worldmap__figure-container");
     public SelenideElement peopleBtn = $("[data-testid='PersonSearchRoundedIcon']");

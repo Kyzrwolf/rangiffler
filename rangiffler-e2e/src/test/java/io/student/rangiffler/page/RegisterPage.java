@@ -4,10 +4,12 @@ import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 
+@ParametersAreNonnullByDefault
 public class RegisterPage {
     private final SelenideElement usernameInput = $("#username");
     private final SelenideElement passwordInput = $("#password");
@@ -18,7 +20,7 @@ public class RegisterPage {
 
     @Step("Зарегистрировать нового пользователя '{username}'")
     @Nonnull
-    public RegisterPage registerNewUser(@Nonnull String username, @Nonnull String password) {
+    public RegisterPage registerNewUser(String username, String password) {
         usernameInput.setValue(username);
         passwordInput.setValue(password);
         passwordSubmitInput.setValue(password);
@@ -41,7 +43,7 @@ public class RegisterPage {
     }
 
     @Step("Проверить, что регистрация пользователя '{username}' не удалась")
-    public void checkRegistrationFailed(@Nonnull String username) {
+    public void checkRegistrationFailed(String username) {
         usernameInput.shouldBe(visible).shouldHave(exactValue(username));
         passwordInput.shouldBe(visible, empty);
         passwordSubmitInput.shouldBe(visible, empty);
@@ -57,25 +59,24 @@ public class RegisterPage {
 
     @Step("Установить имя пользователя '{username}'")
     @Nonnull
-    public RegisterPage setUsername(@Nonnull String username) {
+    public RegisterPage setUsername(String username) {
         usernameInput.setValue(username);
         return this;
     }
 
     @Step("Установить пароль")
     @Nonnull
-    public RegisterPage setPassword(@Nonnull String password) {
+    public RegisterPage setPassword(String password) {
         passwordInput.setValue(password);
         return this;
     }
 
     @Step("Установить подтверждение пароля")
     @Nonnull
-    public RegisterPage setPasswordSubmit(@Nonnull String password) {
+    public RegisterPage setPasswordSubmit(String password) {
         passwordSubmitInput.setValue(password);
         return this;
     }
-
 
 
 }

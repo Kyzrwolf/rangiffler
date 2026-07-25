@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ExtendWith(UserExtension.class)
 public class UserProfileTests extends BaseTest {
 
-    private Faker faker = new Faker();
+    private final Faker faker = new Faker();
     private final UserDbClient usersClient = new UserDbClient();
 
     @ScreenShotTest("img/expected_avatar.png")
@@ -44,10 +44,11 @@ public class UserProfileTests extends BaseTest {
                 .setSurname(surname)
                 .setLocation(location)
                 .uploadNewAvatar("avatar.jpg")
-                .clickSaveBtn();
-        Selenide.refresh();
+                .clickSaveBtn()
+                .checkAlertMessage("Your profile is successfully updated");
 
         step("Выполняем проверки", () -> {
+            Selenide.refresh();
             profilePage.checkFirstName(firstName)
                     .checkSurname(surname)
                     .checkLocation(location);

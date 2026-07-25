@@ -53,7 +53,6 @@ public class FriendsWebTests extends BaseTest {
                 .clickPeopleBtn()
                 .clickIncomeInvitationsBtn()
                 .checkUserIsPresentInPeopleList(user.friend().username());
-
     }
 
     @Test
@@ -66,7 +65,6 @@ public class FriendsWebTests extends BaseTest {
                 .clickPeopleBtn()
                 .clickOutcomeInvitationsBtn()
                 .checkUserIsPresentInPeopleList(user.friend().username());
-
     }
 
     @Test
@@ -78,6 +76,7 @@ public class FriendsWebTests extends BaseTest {
                 .clickPeopleBtn()
                 .clickIncomeInvitationsBtn()
                 .clickAcceptButton(user.friend().username())
+                .checkAlertMessage("Invitation accepted")
                 .clickFriendsBtn()
                 .checkUserIsPresentInPeopleList(user.friend().username());
     }
@@ -90,7 +89,9 @@ public class FriendsWebTests extends BaseTest {
                 .login(user.username(), user.password())
                 .clickPeopleBtn()
                 .clickAllBtn()
+                .searchPerson(user.friend().username())
                 .clickAddButton(user.friend().username())
+                .checkAlertMessage("Invitation sent")
                 .clickOutcomeInvitationsBtn()
                 .checkUserIsPresentInPeopleList(user.friend().username());
     }
@@ -104,6 +105,21 @@ public class FriendsWebTests extends BaseTest {
                 .clickPeopleBtn()
                 .clickIncomeInvitationsBtn()
                 .clickDeclineButton(user.friend().username())
+                .checkAlertMessage("Invitation declined")
+                .clickFriendsBtn()
+                .checkUserIsNotPresentInPeopleList(user.friend().username());
+    }
+
+    @Test
+    @DisplayName("Удаление пользователя из друзей")
+    public void removeFriend(@UserType(WITH_FRIEND) @Nonnull UserExtension.TestUser user) {
+        Selenide.open(CFG.frontUrl(), LoginPage.class)
+                .clickLoginBtn()
+                .login(user.username(), user.password())
+                .clickPeopleBtn()
+                .clickFriendsBtn()
+                .removeUserFromFriends(user.friend().username())
+                .checkAlertMessage("Friend deleted")
                 .clickFriendsBtn()
                 .checkUserIsNotPresentInPeopleList(user.friend().username());
     }

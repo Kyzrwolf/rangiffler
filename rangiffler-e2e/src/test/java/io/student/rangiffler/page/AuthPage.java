@@ -4,12 +4,13 @@ import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
+@ParametersAreNonnullByDefault
 public class AuthPage {
-
     private final SelenideElement usernameInput = $("[name='username']");
     private final SelenideElement passwordInput = $("[name='password']");
     private final SelenideElement signInBtn = $(".form__submit");
@@ -17,7 +18,7 @@ public class AuthPage {
 
     @Step("Авторизоваться под пользователем '{username}'")
     @Nonnull
-    public TravelsMapPage login(@Nonnull String username, @Nonnull String password) {
+    public TravelsMapPage login(String username, String password) {
         usernameInput.setValue(username);
         passwordInput.setValue(password);
         signInBtn.click();
