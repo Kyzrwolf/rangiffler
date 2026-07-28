@@ -28,7 +28,6 @@ public class FriendsWebTests extends BaseTest {
                 .clickPeopleBtn()
                 .clickFriendsBtn()
                 .checkUserIsPresentInPeopleList(user.friend().username());
-
     }
 
     @Test

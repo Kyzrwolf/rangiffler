@@ -116,7 +116,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(friendUser);
                 usersClient.addFriendship(mainUser, friendUser);
                 yield new TestUser(username, password, type,
-                        new TestUser(friendUsername, friendPassword, UserType.Type.EMPTY, null));
+                        new TestUser(friendUsername, friendPassword, UserType.Type.WITH_FRIEND, null));
             }
 
             case WITH_INCOME_REQUEST -> {
@@ -126,7 +126,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(requester);
                 usersClient.addPendingRequest(requester, mainUser);
                 yield new TestUser(username, password, type,
-                        new TestUser(requesterUsername, requesterPassword, UserType.Type.EMPTY, null));
+                        new TestUser(requesterUsername, requesterPassword, UserType.Type.WITH_OUTCOME_REQUEST, null));
             }
 
             case WITH_OUTCOME_REQUEST -> {
@@ -136,7 +136,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(addressee);
                 usersClient.addPendingRequest(mainUser, addressee);
                 yield new TestUser(username, password, type,
-                        new TestUser(addresseeUsername, addresseePassword, UserType.Type.EMPTY, null));
+                        new TestUser(addresseeUsername, addresseePassword, UserType.Type.WITH_INCOME_REQUEST, null));
             }
 
             case STRANGER -> {

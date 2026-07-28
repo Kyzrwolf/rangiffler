@@ -75,6 +75,7 @@ tasks.generateJava {
         "PhotoConnection" to "org.springframework.data.domain.Page<io.student.rangiffler.model.types.Photo>",
         "Date" to "java.time.LocalDateTime"
     )
+    generateClient = true
 }
 
 sourceSets {
