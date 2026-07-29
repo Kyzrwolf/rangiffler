@@ -1,5 +1,6 @@
 package io.student.rangiffler.api;
 
+import io.student.rangiffler.api.core.LoggingInterceptor;
 import io.student.rangiffler.api.core.ThreadSafeCookieStore;
 import io.student.rangiffler.config.Config;
 import okhttp3.Interceptor;
@@ -43,7 +44,7 @@ public abstract class RestClient {
             }
         }
 
-        builder.addNetworkInterceptor(new HttpLoggingInterceptor().setLevel(level));
+        builder.addInterceptor(new LoggingInterceptor());
         builder.cookieJar(
               new JavaNetCookieJar(new CookieManager(
                       ThreadSafeCookieStore.INSTANCE,
