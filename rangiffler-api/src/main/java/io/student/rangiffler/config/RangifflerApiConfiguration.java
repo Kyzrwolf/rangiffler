@@ -29,7 +29,7 @@ public class RangifflerApiConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        corsCustomizer.corsCustomizer(http);
+        corsCustomizer.apply(http);
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(customizer ->

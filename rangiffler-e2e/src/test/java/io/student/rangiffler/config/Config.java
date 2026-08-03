@@ -12,7 +12,9 @@ public interface Config {
 
   String registerUrl();
 
-  String jdbcUrl();
+  String authJdbcUrl();
+
+  String userdataJdbcUrl();
 
   String dbUsername();
 

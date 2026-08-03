@@ -3,7 +3,7 @@ package io.student.rangiffler.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -17,6 +17,7 @@ public class PeoplePage {
             .findBy(text("Outcome invitations"));
     public SelenideElement incomeInvitationsBtn = peopleTabs.$$("button")
             .findBy(text("Income invitations"));
+    public SelenideElement tabPanelFriends = $("#simple-tabpanel-friends");
 
     public ElementsCollection peopleList = $$("tr");
 
@@ -41,6 +42,7 @@ public class PeoplePage {
     }
 
     public void checkPeopleListIsEmpty() {
-        peopleList.shouldBe(empty);
+        tabPanelFriends.shouldHave(text("There are no users yet"));
+        peopleList.shouldHave(size(1));
     }
 }

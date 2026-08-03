@@ -1,16 +1,21 @@
-package io.student.rangiffler.data;
+package io.student.rangiffler.data.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "photo")
+@Accessors(chain = true)
 public class PhotoEntity {
 
     @Id
@@ -21,15 +26,18 @@ public class PhotoEntity {
     @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "country_id", nullable = false, columnDefinition = "BINARY(16)")
     private CountryEntity country;
 
     @Column(name = "description", columnDefinition = "VARCHAR(255)")
     private String description;
 
+    @NotNull
+    @OneToMany(mappedBy = "photo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PhotoLikeEntity> photoLikes = new ArrayList<>();
+
     @Lob
-    @Basic(fetch = FetchType.LAZY)
     @Column(name = "photo", columnDefinition = "LONGBLOB")
     private byte[] photo;
 

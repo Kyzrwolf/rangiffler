@@ -2,9 +2,10 @@ package io.student.rangiffler.tests;
 
 import com.codeborne.selenide.Selenide;
 import io.student.rangiffler.config.Config;
-import io.student.rangiffler.jupiter.annotation.User;
-import io.student.rangiffler.models.UserJson;
+import io.student.rangiffler.jupiter.annotation.UserType;
+import io.student.rangiffler.jupiter.extension.UserExtension;
 import io.student.rangiffler.page.RegisterPage;
+import io.student.rangiffler.utils.RandomUtils;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,8 @@ public class RegistrationTests extends BaseTest {
     private final String password = faker.credentials().password(3,12);
 
     @Test
-    @User
     @DisplayName("|-| Пользователь уже зарегистрирован")
-    public void shouldNotRegisterUserWithExistingUsername(UserJson user) {
+    public void shouldNotRegisterUserWithExistingUsername(@UserType() UserExtension.TestUser user) {
         Selenide.open(CFG.registerUrl(), RegisterPage.class)
                 .registerNewUser(user.username(), password)
                 .checkRegistrationFailed(user.username());
@@ -31,7 +31,7 @@ public class RegistrationTests extends BaseTest {
         Selenide.open(CFG.registerUrl(), RegisterPage.class)
                 .setUsername(username)
                 .setPassword(password)
-                .setPasswordSubmit(password + "1")
+                .setPasswordSubmit(password + RandomUtils.generateRandomAlphanumericString(6))
                 .clickSignUpButton()
                 .checkPasswordsShouldBeEqualErrorMessage()
                 .checkRegistrationFailed(username);
@@ -40,7 +40,6 @@ public class RegistrationTests extends BaseTest {
     @Test
     @DisplayName("Регистрация нового пользователя")
     public void shouldRegisterNewUser() {
-
         Selenide.open(CFG.registerUrl(), RegisterPage.class)
                 .registerNewUser(username, password)
                 .signIn()

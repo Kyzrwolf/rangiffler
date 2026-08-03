@@ -1,5 +1,6 @@
 plugins {
     java
+    id("com.netflix.dgs.codegen") version "8.3.0"
 }
 
 dependencies {
@@ -22,14 +23,14 @@ dependencies {
     }
 
     // Spring
-    testImplementation(libs.spring.data.commons)
+    implementation(libs.spring.data.commons)
     testImplementation(libs.spring.jdbc)
     testImplementation(libs.spring.crypto)
 
     // DB / Hibernate
     testImplementation(libs.p6spy)
     testImplementation(libs.hibernate.core)
-    testRuntimeOnly(libs.mysql)
+    testImplementation(libs.mysql)
 
     // Allure
     testImplementation(libs.allure.attachments)
@@ -52,6 +53,8 @@ dependencies {
     testImplementation(libs.sql.formatter)
     compileOnly(libs.jakarta.annotation)
     testImplementation("org.apache.commons:commons-lang3:3.14.0")
+    testImplementation(libs.atomikos)
+    testImplementation(libs.jta.api)
 
     // lombok
     testCompileOnly(libs.lombok)
@@ -60,4 +63,26 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+tasks.generateJava {
+    schemaPaths = mutableListOf("${projectDir}/src/test/resources/schema")
+    packageName = "io.student.rangiffler.model"
+    typeMapping = mutableMapOf(
+        "UserConnection" to "org.springframework.data.domain.Page<io.student.rangiffler.model.types.User>",
+        "PhotoConnection" to "org.springframework.data.domain.Page<io.student.rangiffler.model.types.Photo>",
+        "Date" to "java.time.LocalDateTime"
+    )
+}
+
+sourceSets {
+    test {
+        java {
+            srcDir(layout.buildDirectory.dir("generated/sources/dgs-codegen"))
+        }
+    }
+}
+
+tasks.compileTestJava {
+    dependsOn(tasks.generateJava)
 }
