@@ -1,11 +1,14 @@
 package io.student.rangiffler.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.qameta.allure.Step;
 import io.student.rangiffler.config.Config;
 import lombok.SneakyThrows;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+
+import javax.annotation.Nonnull;
 
 public class GithubApiClient {
 
@@ -18,8 +21,10 @@ public class GithubApiClient {
 
     private final GithubApi githubApi = retrofit.create(GithubApi.class);
 
+    @Step("Получить статус issue '{issueNumber}' на GitHub")
     @SneakyThrows
-    public String issueState(String issueNumber) {
+    @Nonnull
+    public String issueState(@Nonnull String issueNumber) {
         String token = System.getenv(GH_TOKEN_ENV);
         if (token == null || token.isBlank()) {
             throw new IllegalStateException("Environment variable '" + GH_TOKEN_ENV + "' is not set");
