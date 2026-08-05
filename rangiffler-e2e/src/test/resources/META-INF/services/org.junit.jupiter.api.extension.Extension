@@ -1,0 +1,2 @@
+io.student.rangiffler.jupiter.extension.CookiesExtension
+io.student.rangiffler.jupiter.extension.TestMethodContextExtension
