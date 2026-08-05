@@ -57,6 +57,7 @@ dependencies {
     testImplementation(libs.jta.api)
     testImplementation(libs.ashot)
     testImplementation(libs.assertj)
+    testImplementation("com.squareup.retrofit2:converter-scalars:3.0.0")
 
     // lombok
     testCompileOnly(libs.lombok)

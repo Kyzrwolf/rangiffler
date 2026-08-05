@@ -8,12 +8,16 @@ import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.lang.Nullable;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+
+import static okhttp3.logging.HttpLoggingInterceptor.Level.BODY;
+import static okhttp3.logging.HttpLoggingInterceptor.Level.HEADERS;
 
 public abstract class RestClient {
 
@@ -23,15 +27,19 @@ public abstract class RestClient {
     protected final Retrofit retrofit;
 
     public RestClient(String baseUrl) {
-        this(baseUrl, false, JacksonConverterFactory.create(), HttpLoggingInterceptor.Level.BODY);
+        this(baseUrl, false, JacksonConverterFactory.create(), BODY);
     }
 
     public RestClient(String baseUrl, boolean followRedirect) {
-        this(baseUrl, followRedirect, JacksonConverterFactory.create(), HttpLoggingInterceptor.Level.BODY);
+        this(baseUrl, followRedirect, JacksonConverterFactory.create(), BODY);
     }
 
     public RestClient(String baseUrl, Converter.Factory factory) {
-        this(baseUrl, false, factory, HttpLoggingInterceptor.Level.BODY);
+        this(baseUrl, false, factory, BODY);
+    }
+
+    public RestClient(String baseUrl, boolean followRedirect, @Nullable Interceptor... interceptors) {
+        this(baseUrl, followRedirect, JacksonConverterFactory.create(), HEADERS, interceptors);
     }
 
     public RestClient(String baseUrl, boolean followRedirect, Converter.Factory factory, HttpLoggingInterceptor.Level level, Interceptor... interceptors) {

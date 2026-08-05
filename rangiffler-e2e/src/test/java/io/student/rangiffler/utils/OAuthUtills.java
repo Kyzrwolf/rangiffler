@@ -13,8 +13,9 @@ import java.util.Base64;
 @ParametersAreNonnullByDefault
 public class OAuthUtills {
 
+    private static final SecureRandom secureRandom = new SecureRandom();
+
     public String generateCodeVerifier() {
-        var secureRandom = new SecureRandom();
         var code = new byte[32];
         secureRandom.nextBytes(code);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(code);

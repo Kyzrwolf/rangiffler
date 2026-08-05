@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
+import org.springframework.lang.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -92,11 +93,32 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
     @Nonnull
     public TestUser resolveParameter(@Nonnull ParameterContext pc,
                                      @Nonnull ExtensionContext context) throws ParameterResolutionException {
+        return getUser(pc, context);
+    }
+
+    public static TestUser getUser(@NonNull ParameterContext pc, @NonNull ExtensionContext context) {
         UserType ut = pc.getParameter().getAnnotation(UserType.class);
-        @SuppressWarnings("unchecked")
-        Map<UserType.Type, TestUser> users = context.getStore(NAMESPACE)
-                .get(USERS_KEY + context.getUniqueId(), Map.class);
-        return users.get(ut.value());
+        return getUser(ut.value(), context);
+    }
+
+    @Nonnull
+    public static TestUser getUser(@NonNull UserType.Type type, @NonNull ExtensionContext context) {
+        Map<UserType.Type, TestUser> users = getUsers(context);
+        var user = users.get(type);
+        if (user == null) {
+            throw new ExtensionConfigurationException(
+                    "No user of type " + type + " found in test method: " + context.getDisplayName());
+        }
+        return user;
+    }
+
+    public static void setUser(@NonNull UserType.Type type, @NonNull TestUser user, @NonNull ExtensionContext context) {
+        getUsers(context).put(type, user);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<UserType.Type, TestUser> getUsers(@NonNull ExtensionContext context) {
+        return context.getStore(NAMESPACE).get(USERS_KEY + context.getUniqueId(), Map.class);
     }
 
     @Nonnull
