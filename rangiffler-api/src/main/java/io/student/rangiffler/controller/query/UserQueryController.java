@@ -13,8 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
-import java.util.List;
-
 @Controller
 @PreAuthorize("isAuthenticated()")
 public class UserQueryController {
@@ -30,7 +28,6 @@ public class UserQueryController {
     public Page<User> friends(User user,
                               @Argument int page,
                               @Argument int size,
-                              @Argument @Nullable List<String> sort,
                               @Argument @Nullable String searchQuery) {
 
         return userService.friends(

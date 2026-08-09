@@ -9,6 +9,7 @@ import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,9 +27,9 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
     private static final String CLEANUP_KEY = "cleanup_users_";
 
     public record TestUser(
-            String username,
-            String password,
-            UserType.Type type,
+            @Nonnull String username,
+            @Nonnull String password,
+            @Nonnull UserType.Type type,
             @Nullable TestUser friend
     ) {
     }
@@ -37,7 +38,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
     private final Faker faker = new Faker();
 
     @Override
-    public void beforeEach(ExtensionContext context) {
+    public void beforeEach(@Nonnull ExtensionContext context) {
         var store = context.getStore(NAMESPACE);
         var usersMap = new HashMap<UserType.Type, TestUser>();
         var cleanupList = new ArrayList<UserJson>();
@@ -61,7 +62,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
     }
 
     @Override
-    public void afterEach(ExtensionContext context) {
+    public void afterEach(@Nonnull ExtensionContext context) {
         var store = context.getStore(NAMESPACE);
 
         @SuppressWarnings("unchecked")
@@ -81,15 +82,16 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
     }
 
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext,
-                                     ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(@Nonnull ParameterContext parameterContext,
+                                     @Nonnull ExtensionContext extensionContext) throws ParameterResolutionException {
         return parameterContext.getParameter().getType().isAssignableFrom(TestUser.class)
                 && AnnotationSupport.isAnnotated(parameterContext.getParameter(), UserType.class);
     }
 
     @Override
-    public TestUser resolveParameter(ParameterContext pc,
-                                     ExtensionContext context) throws ParameterResolutionException {
+    @Nonnull
+    public TestUser resolveParameter(@Nonnull ParameterContext pc,
+                                     @Nonnull ExtensionContext context) throws ParameterResolutionException {
         UserType ut = pc.getParameter().getAnnotation(UserType.class);
         @SuppressWarnings("unchecked")
         Map<UserType.Type, TestUser> users = context.getStore(NAMESPACE)
@@ -97,7 +99,8 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
         return users.get(ut.value());
     }
 
-    private TestUser createUserForType(UserType.Type type, List<UserJson> cleanupList) {
+    @Nonnull
+    private TestUser createUserForType(@Nonnull UserType.Type type, @Nonnull List<UserJson> cleanupList) {
         String username = faker.credentials().username();
         String password = faker.credentials().password();
         UserJson mainUser = usersClient.createUser(username, password);
@@ -113,7 +116,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(friendUser);
                 usersClient.addFriendship(mainUser, friendUser);
                 yield new TestUser(username, password, type,
-                        new TestUser(friendUsername, friendPassword, UserType.Type.EMPTY, null));
+                        new TestUser(friendUsername, friendPassword, UserType.Type.WITH_FRIEND, null));
             }
 
             case WITH_INCOME_REQUEST -> {
@@ -123,7 +126,7 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(requester);
                 usersClient.addPendingRequest(requester, mainUser);
                 yield new TestUser(username, password, type,
-                        new TestUser(requesterUsername, requesterPassword, UserType.Type.EMPTY, null));
+                        new TestUser(requesterUsername, requesterPassword, UserType.Type.WITH_OUTCOME_REQUEST, null));
             }
 
             case WITH_OUTCOME_REQUEST -> {
@@ -133,7 +136,16 @@ public class UserExtension implements BeforeEachCallback, AfterEachCallback, Par
                 cleanupList.add(addressee);
                 usersClient.addPendingRequest(mainUser, addressee);
                 yield new TestUser(username, password, type,
-                        new TestUser(addresseeUsername, addresseePassword, UserType.Type.EMPTY, null));
+                        new TestUser(addresseeUsername, addresseePassword, UserType.Type.WITH_INCOME_REQUEST, null));
+            }
+
+            case STRANGER -> {
+                String strangerUsername = faker.credentials().username();
+                String strangerPassword = faker.credentials().password();
+                UserJson stranger = usersClient.createUser(strangerUsername, strangerPassword);
+                cleanupList.add(stranger);
+                yield new TestUser(username, password, type,
+                        new TestUser(strangerUsername, strangerPassword, UserType.Type.EMPTY, null));
             }
         };
     }
