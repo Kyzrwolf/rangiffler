@@ -55,6 +55,8 @@ dependencies {
     testImplementation("org.apache.commons:commons-lang3:3.14.0")
     testImplementation(libs.atomikos)
     testImplementation(libs.jta.api)
+    testImplementation(libs.ashot)
+    testImplementation(libs.assertj)
 
     // lombok
     testCompileOnly(libs.lombok)

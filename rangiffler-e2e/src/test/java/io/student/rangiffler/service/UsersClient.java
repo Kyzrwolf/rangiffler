@@ -2,14 +2,18 @@ package io.student.rangiffler.service;
 
 import io.student.rangiffler.model.UserJson;
 
+import javax.annotation.Nonnull;
+
 public interface UsersClient {
-    UserJson createUser(String username, String password);
+    @Nonnull
+    UserJson createUser(@Nonnull String username, @Nonnull String password);
 
-    UserJson findByUsername(String username);
+    @Nonnull
+    UserJson findByUsername(@Nonnull String username);
 
-    void addFriendship(UserJson requester, UserJson addressee);
+    void addFriendship(@Nonnull UserJson requester, @Nonnull UserJson addressee);
 
-    void addPendingRequest(UserJson requester, UserJson addressee);
+    void addPendingRequest(@Nonnull UserJson requester, @Nonnull UserJson addressee);
 
-    void deleteUser(UserJson user);
+    void deleteUser(@Nonnull UserJson user);
 }
