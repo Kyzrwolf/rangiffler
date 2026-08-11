@@ -31,6 +31,12 @@ public enum LocalConfig implements Config {
 
   @Override
   @Nonnull
+  public String apiUrl() {
+    return "http://localhost:8080/";
+  }
+
+  @Override
+  @Nonnull
   public String registerUrl() { return "http://localhost:9000/register"; }
 
   @Override

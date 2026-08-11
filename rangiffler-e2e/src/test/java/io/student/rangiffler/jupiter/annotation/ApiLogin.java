@@ -15,4 +15,5 @@ public @interface ApiLogin {
     String username() default "";
     String password() default "";
 
+    boolean setupBrowser() default true;
 }

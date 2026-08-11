@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -78,6 +79,18 @@ public class UserDbClient implements UsersClient {
 
     private static final String SELECT_RANDOM_COUNTRY_SQL =
             "SELECT name FROM `country` ORDER BY RAND() LIMIT 1";
+
+    private static final List<String> CLEAN_USERDATA_SQL = List.of(
+            "DELETE FROM `photo_like`",
+            "DELETE FROM `like`",
+            "DELETE FROM `photo`",
+            "DELETE FROM `friendship`",
+            "DELETE FROM `statistic`",
+            "DELETE FROM `user`");
+
+    private static final List<String> CLEAN_AUTH_SQL = List.of(
+            "DELETE FROM `authority`",
+            "DELETE FROM `user`");
 
     private static final UserTransactionManager TRANSACTION_MANAGER;
     private static final AtomikosDataSourceBean AUTH_DS;
@@ -262,6 +275,19 @@ public class UserDbClient implements UsersClient {
             closeQuietly(rawUdConn);
             rollbackQuietly();
             throw new RuntimeException("Failed to delete user [" + user.username() + "]: " + e.getMessage(), e);
+        }
+    }
+
+    @Step("Очистить пользователей в базах auth и api")
+    public void cleanUsers() {
+        JdbcTemplate userdataJdbc = new JdbcTemplate(userdataReadDataSource());
+        for (String sql : CLEAN_USERDATA_SQL) {
+            userdataJdbc.update(sql);
+        }
+
+        JdbcTemplate authJdbc = new JdbcTemplate(authReadDataSource());
+        for (String sql : CLEAN_AUTH_SQL) {
+            authJdbc.update(sql);
         }
     }
 

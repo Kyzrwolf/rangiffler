@@ -1,4 +1,4 @@
-package io.student.rangiffler.tests;
+package io.student.rangiffler.tests.web;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;

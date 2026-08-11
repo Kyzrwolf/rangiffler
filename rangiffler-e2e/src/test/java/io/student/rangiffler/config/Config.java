@@ -22,6 +22,9 @@ public interface Config {
   String authUrl();
 
   @Nonnull
+  String apiUrl();
+
+  @Nonnull
   String registerUrl();
 
   @Nonnull

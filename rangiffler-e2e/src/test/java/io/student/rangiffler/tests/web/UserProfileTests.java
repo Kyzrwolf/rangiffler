@@ -1,10 +1,11 @@
-package io.student.rangiffler.tests;
+package io.student.rangiffler.tests.web;
 
 import com.codeborne.selenide.Selenide;
 import io.qameta.allure.Allure;
 import io.student.rangiffler.jupiter.annotation.ScreenShotTest;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UserExtension;
+import io.student.rangiffler.jupiter.extension.UserExtension.TestUser;
 import io.student.rangiffler.page.LoginPage;
 import io.student.rangiffler.service.UserDbClient;
 import net.datafaker.Faker;
@@ -32,7 +33,7 @@ public class UserProfileTests extends BaseTest {
 
     @ScreenShotTest("img/expected_avatar.png")
     @DisplayName("Редактирование профиля пользователя")
-    public void changeUserProfile(@UserType(EMPTY) @Nonnull UserExtension.TestUser user, @Nonnull BufferedImage expected) {
+    public void changeUserProfile(@UserType(EMPTY) @Nonnull TestUser user, @Nonnull BufferedImage expected) {
         var firstName = faker.name().firstName();
         var surname = faker.name().lastName();
         var location = usersClient.getRandomCountryName();

@@ -17,13 +17,6 @@ import static io.student.rangiffler.jupiter.annotation.UserType.Type.WITH_FRIEND
 public class OAuthTests {
 
     @Test
-    @DisplayName("Api Login check token not empty")
-    @ApiLogin(username = "Bob", password = "123")
-    public void fakeLoginTest(@Token String token) {
-        Assertions.assertNotNull(token);
-    }
-
-    @Test
     @DisplayName("Api Login with generated user")
     @ApiLogin
     public void fakeLoginTest2(@UserType(EMPTY) TestUser user, @Token String token) {

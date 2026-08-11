@@ -21,20 +21,6 @@ public class ApiLoginExtension implements BeforeEachCallback, ParameterResolver 
     public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(ApiLoginExtension.class);
     private static final Config CFG = Config.getInstance();
     private final AuthApiClient authApiClient = new AuthApiClient();
-    private final boolean setupBrowser;
-
-    private ApiLoginExtension(boolean setupBrowser) {
-        this.setupBrowser = setupBrowser;
-    }
-
-    public ApiLoginExtension() {
-        this.setupBrowser = true;
-    }
-
-    public static ApiLoginExtension restApiLoginExtension() {
-        return new ApiLoginExtension(false);
-    }
-
 
     @Override
     public void beforeEach(ExtensionContext context) {
@@ -60,7 +46,7 @@ public class ApiLoginExtension implements BeforeEachCallback, ParameterResolver 
                    var token = authApiClient.login(username, password);
                    setToken(token);
 
-                    if (setupBrowser) {
+                    if (apiLogin.setupBrowser()) {
                         Selenide.open(CFG.frontUrl());
                         Selenide.localStorage().setItem("id_token", getToken());
                         WebDriverRunner.getWebDriver().manage().addCookie(
