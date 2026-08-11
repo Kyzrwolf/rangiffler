@@ -1,13 +1,15 @@
 package io.student.rangiffler.model;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public record UserJson(
-    UUID id,
-    UUID udId,
-    String username,
-    String password,
-    String firstname,
-    String surname,
-    String avatar
+    @Nonnull UUID id,
+    @Nullable UUID udId,
+    @Nonnull String username,
+    @Nonnull String password,
+    @Nullable String firstname,
+    @Nullable String surname,
+    @Nullable String avatar
 ) {}

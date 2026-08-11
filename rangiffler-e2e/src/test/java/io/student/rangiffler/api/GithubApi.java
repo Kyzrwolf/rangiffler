@@ -7,11 +7,14 @@ import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
 
+import javax.annotation.Nonnull;
+
 public interface GithubApi {
 
     @GET("/repos/kyzrwolf/rangiffler/issues/{issue_number}")
     @Headers({"Accept: application/vnd.github+json",
             "X-GitHub-Api-Version: 2022-11-28"})
-    Call<JsonNode> issue(@Header("Authorization") String bearerToken,
-                         @Path("issue_number") String issueNumber);
+    @Nonnull
+    Call<JsonNode> issue(@Nonnull @Header("Authorization") String bearerToken,
+                         @Nonnull @Path("issue_number") String issueNumber);
 }
