@@ -46,6 +46,8 @@ spring:
     open-in-view: false
 
 logging:
+  file:
+    name: .logs/rangiffler-api/app.log
   level:
     root: INFO
     org.springframework.web: DEBUG
