@@ -17,6 +17,7 @@ public class ProfilePage extends BasePage<ProfilePage> {
     public SelenideElement firstNameInput = $("#firstname");
     public SelenideElement surNameInput = $("#surname");
     public SelenideElement avatarInput = $("#image__input");
+    public SelenideElement avatarImage = $(".MuiAvatar-img");
     public SelenideElement usernameInput = $("#username");
     public SelenideElement locationDropDown = $("#location");
     public SelenideElement saveBtn = $("[type='submit']");

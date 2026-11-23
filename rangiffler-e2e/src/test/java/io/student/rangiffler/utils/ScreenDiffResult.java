@@ -7,11 +7,13 @@ import ru.yandex.qatools.ashot.comparison.ImageDiffer;
 import java.awt.image.BufferedImage;
 import java.util.function.BooleanSupplier;
 
+import static io.student.rangiffler.jupiter.extension.ScreenShotTestExtension.REWRITE_EXPECTED_PROPERTY;
+
 public class ScreenDiffResult implements BooleanSupplier {
-   private final BufferedImage expected;
-   private final BufferedImage actual;
-   private final ImageDiff diff;
-   private final boolean hasDiff;
+    private final BufferedImage expected;
+    private final BufferedImage actual;
+    private final ImageDiff diff;
+    private final boolean hasDiff;
 
     public ScreenDiffResult(BufferedImage expected, BufferedImage actual) {
         this.expected = expected;
@@ -22,6 +24,10 @@ public class ScreenDiffResult implements BooleanSupplier {
 
     @Override
     public boolean getAsBoolean() {
+        if (Boolean.getBoolean(REWRITE_EXPECTED_PROPERTY)) {
+            ScreenShotTestExtension.rewriteExpected(actual);
+            return false;
+        }
         if (hasDiff) {
             ScreenShotTestExtension.setExpected(expected);
             ScreenShotTestExtension.setActual(actual);

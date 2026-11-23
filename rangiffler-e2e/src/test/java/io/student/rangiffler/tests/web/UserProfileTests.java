@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
-import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Condition.image;
 import static io.qameta.allure.Allure.step;
 import static io.student.rangiffler.jupiter.annotation.UserType.Type.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,7 +49,7 @@ public class UserProfileTests extends BaseTest {
             profilePage.checkFirstName(firstName)
                     .checkSurname(surname)
                     .checkLocation(location);
-            var actual = ImageIO.read($(".MuiAvatar-img").screenshot());
+            var actual = ImageIO.read(profilePage.avatarImage.shouldBe(image).screenshot());
             assertFalse(new ScreenDiffResult(expected, actual), "Avatar image is different");
         });
 

@@ -64,8 +64,12 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
 }
 
+val rewriteExpectedProperty = "rewriteExpected"
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    systemProperty("screenshots.resourcesDir", layout.projectDirectory.dir("src/test/resources").asFile.absolutePath)
+    systemProperty(rewriteExpectedProperty, System.getProperty(rewriteExpectedProperty, "false"))
 }
 
 tasks.generateJava {
