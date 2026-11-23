@@ -76,6 +76,8 @@ spring:
     open-in-view: false
 
 logging:
+  file:
+    name: .logs/rangiffler-auth/app.log
   level:
     root: INFO
     org.springframework.web: DEBUG

@@ -1,6 +1,7 @@
 package io.student.rangiffler.jupiter.extension;
 
 import io.student.rangiffler.api.GithubApiClient;
+import io.student.rangiffler.config.Config;
 import io.student.rangiffler.jupiter.annotation.DisabledByIssue;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -9,13 +10,17 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.commons.support.SearchOption;
 
+import javax.annotation.Nonnull;
+
 @Slf4j
 public class IssueExtension implements ExecutionCondition {
 
+    private static final Config CFG = Config.getInstance();
     private final GithubApiClient githubApiClient = new GithubApiClient();
 
     @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+    @Nonnull
+    public ConditionEvaluationResult evaluateExecutionCondition(@Nonnull ExtensionContext context) {
         return AnnotationSupport.findAnnotation(
                 context.getRequiredTestMethod(),
                 DisabledByIssue.class

@@ -55,14 +55,21 @@ dependencies {
     testImplementation("org.apache.commons:commons-lang3:3.14.0")
     testImplementation(libs.atomikos)
     testImplementation(libs.jta.api)
+    testImplementation(libs.ashot)
+    testImplementation(libs.assertj)
+    testImplementation("com.squareup.retrofit2:converter-scalars:3.0.0")
 
     // lombok
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 }
 
+val rewriteExpectedProperty = "rewriteExpected"
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    systemProperty("screenshots.resourcesDir", layout.projectDirectory.dir("src/test/resources").asFile.absolutePath)
+    systemProperty(rewriteExpectedProperty, System.getProperty(rewriteExpectedProperty, "false"))
 }
 
 tasks.generateJava {
@@ -73,6 +80,7 @@ tasks.generateJava {
         "PhotoConnection" to "org.springframework.data.domain.Page<io.student.rangiffler.model.types.Photo>",
         "Date" to "java.time.LocalDateTime"
     )
+    generateClient = true
 }
 
 sourceSets {
