@@ -1,24 +1,20 @@
 package io.student.rangiffler.tests.web;
 
 import com.codeborne.selenide.Selenide;
-import io.qameta.allure.Allure;
 import io.student.rangiffler.jupiter.annotation.ScreenShotTest;
 import io.student.rangiffler.jupiter.annotation.UserType;
 import io.student.rangiffler.jupiter.extension.UserExtension;
 import io.student.rangiffler.jupiter.extension.UserExtension.TestUser;
 import io.student.rangiffler.page.LoginPage;
 import io.student.rangiffler.service.UserDbClient;
+import io.student.rangiffler.utils.ScreenDiffResult;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
-import ru.yandex.qatools.ashot.comparison.ImageDiffer;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import static com.codeborne.selenide.Selenide.$;
 import static io.qameta.allure.Allure.step;
@@ -53,29 +49,10 @@ public class UserProfileTests extends BaseTest {
             profilePage.checkFirstName(firstName)
                     .checkSurname(surname)
                     .checkLocation(location);
-
-            var actualAvatar = ImageIO.read($(".MuiAvatar-img").screenshot());
-            var imageDiff = new ImageDiffer().makeDiff(expected, actualAvatar);
-            var resultImage = imageDiff.getMarkedImage();
-            Allure.addAttachment(
-                    "diff image",
-                    "image/png",
-                    new ByteArrayInputStream(imageToBytes(resultImage)),
-                    "png"
-            );
-
-            assertFalse(imageDiff.hasDiff(), "Avatar image is different");
+            var actual = ImageIO.read($(".MuiAvatar-img").screenshot());
+            assertFalse(new ScreenDiffResult(expected, actual), "Avatar image is different");
         });
 
     }
 
-    @Nonnull
-    private static byte[] imageToBytes(@Nonnull BufferedImage image) {
-        try (var outputStream = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "png", outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
